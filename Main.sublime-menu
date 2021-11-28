@@ -1,0 +1,116 @@
+[
+	    {
+        "id": "tools",
+        "children":
+        [
+	{
+		"id" : "SphinxRefmateToolsMenu",
+		"caption": "Sphinx xReferencing Tools",
+		"children":
+		[
+			{
+				"id" : "InsertLocRefFromObjectsInv",
+				"caption": "Insert Links From Current Project",
+				"mnemonic" : "L",
+				"children":
+				[
+				{
+					"caption" : "All Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": "True"},
+					"mnemonic" : "A"
+				},
+				{
+					"caption" : "Page (doc) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": "True", "refTypeToGet": "doc"},
+					"mnemonic" : "P"
+				},
+				{
+					"caption" : "Section (label) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": "True", "refTypeToGet": "label"},
+					"mnemonic" : "S"
+				},
+				{
+					"caption" : "Glossary (term) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": "True", "refTypeToGet": "term"},
+					"mnemonic" : "G"
+				},
+				{
+					"caption" : "rst Epilog entries",
+					"command" : "insert_rst_epilog_substitution",
+					"mnemonic" : "E"
+				}
+				]
+			},
+			{
+				"id" : "InsertXRefFromObjectsInv",
+				"caption": "Insert Links From Intersphinx Projects",
+				"mnemonic" : "x",
+				"children":
+				[
+				{
+					"caption" : "All Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": "False"},
+					"mnemonic" : "A"
+				},
+				{
+					"caption" : "Page (doc) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": "False", "refTypeToGet": "doc"},
+					"mnemonic" : "P"
+				},
+				{
+					"caption" : "Section (label) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": "False", "refTypeToGet": "label"},
+					"mnemonic" : "S"
+				},
+				{
+					"caption" : "Glossary (term) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": "False", "refTypeToGet": "term"},
+					"mnemonic" : "G"
+				}
+				]
+			},
+		]
+	}
+        ]
+    },
+    {
+        // "caption": "Preferences",
+        // "mnemonic": "n",
+        "id": "preferences",
+        "children":
+        [
+            {
+                // "caption": "Package Settings",
+                // "mnemonic": "P",
+                "id": "package-settings",
+                "children":
+                [
+                    {
+                        "id": "sphinx-refmate",
+                        "caption": "sphinx-refmate",
+                        "children":
+                        [
+                        	{
+                        	      "caption": "Settings",
+                        	      "command": "edit_settings", "args":
+                        	      {
+                        	          "base_file": "${packages}/sphinx-refmate/sphinx-refmate.sublime-settings",
+                        	          "default": "// sphinx-refmate Settings - User\n{\n\t$0\n}\n"
+                        	      }
+                        	  },
+                        	{
+                        	      "caption": "Key Bindings",
+                        	      "command": "edit_settings", "args":
+                        	      {
+                        	          "base_file": "${packages}/sphinx-refmate/keymaps/Default ($platform).sublime-keymap",
+                        	          "default": "${packages}/User/Default ($platform).sublime-keymap"
+                        	      }
+                        	  }
+
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]

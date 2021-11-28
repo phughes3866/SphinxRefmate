@@ -1,0 +1,83 @@
+[
+	{
+		"id" : "SphinxRefmateCtxMenu",
+		"caption": "Sphinx Refmate Tools",
+		"command" : "contextually_visible_parent_menu_item", "args": {
+						            // this is a dummy command to limit the visibility of this menu
+						            // to a restructured text context only
+						            "scope_selector": "text.restructuredtext"
+								},
+        "mnemonic": "R",
+		"children":
+		[
+			{
+				"id" : "InsertLocRefFromObjectsInv",
+				"caption": "Insert Links From Current Project",
+				"mnemonic" : "L",
+				"children":
+				[
+				{
+					"caption" : "All Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": "True"},
+					"mnemonic" : "A"
+				},
+				{
+					"caption" : "Page (doc) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": "True", "refTypeToGet": "doc"},
+					"mnemonic" : "P"
+				},
+				{
+					"caption" : "Section (label) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": "True", "refTypeToGet": "label"},
+					"mnemonic" : "S"
+				},
+				{
+					"caption" : "Glossary (term) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": "True", "refTypeToGet": "term"},
+					"mnemonic" : "G"
+				}
+				]
+			},
+			{
+				"id" : "CtxInsertXRefFromObjectsInv",
+				"caption": "Insert Links From Intersphinx Projects",
+				"mnemonic" : "x",
+				"children":
+				[
+				{
+					"caption" : "All Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": "False"},
+					"mnemonic" : "A"
+				},
+				{
+					"caption" : "Page (doc) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": "False", "refTypeToGet": "doc"},
+					"mnemonic" : "P"
+				},
+				{
+					"caption" : "Section (label) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": "False", "refTypeToGet": "label"},
+					"mnemonic" : "S"
+				},
+				{
+					"caption" : "Glossary (term) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": "False", "refTypeToGet": "term"},
+					"mnemonic" : "G"
+				}
+				]
+			},
+			{
+				"id" : "sphinx-refmate-bibliograpy-ref-insert",
+				"caption" : "Insert Bibliography Reference",
+				"command" : "cite_from_biblio_files",
+				"mnemonic" : "B"
+			},
+			{
+				"id" : "sphinx-refmate-rst-epilog-substitution-insert",
+				"caption" : "Insert reSt substitution (from rst_epilog)",
+				"command" : "insert_rst_epilog_substitution",
+				"mnemonic" : "S"
+			}
+		]
+	}
+]

@@ -1,0 +1,52 @@
+[
+    {
+        "caption": "Sphinx-Refmate: Insert Local Project Links (All Types)",
+		"command" : "insert_sphinx_links", "args": {"withinProj": "True"}
+    },
+    {
+        "caption": "Sphinx-Refmate: Insert Local Project Links (docs/pages)",
+		"command" : "insert_sphinx_links", "args": {"withinProj": "True", "refTypeToGet": "doc"}
+    },
+    {
+        "caption": "Sphinx-Refmate: Insert Local Project Links (labels/sections)",
+		"command" : "insert_sphinx_links", "args": {"withinProj": "True", "refTypeToGet": "label"}
+    },
+    {
+        "caption": "Sphinx-Refmate: Insert Local Project Links (Glossary Terms)",
+		"command" : "insert_sphinx_links", "args": {"withinProj": "True", "refTypeToGet": "term"}
+    },
+    {
+        "caption": "Sphinx-Refmate: Insert Cross Project Links (All Types)",
+		"command" : "insert_sphinx_links", "args": {"withinProj": "False"}
+    },
+    {
+        "caption": "Sphinx-Refmate: Insert Cross Project Links (docs/pages)",
+		"command" : "insert_sphinx_links", "args": {"withinProj": "False", "refTypeToGet": "doc"}
+    },
+    {
+        "caption": "Sphinx-Refmate: Insert Cross Project Links (labels/sections)",
+		"command" : "insert_sphinx_links", "args": {"withinProj": "False", "refTypeToGet": "label"}
+    },
+    {
+        "caption": "Sphinx-Refmate: Insert Cross Project Links (Glossary Terms)",
+		"command" : "insert_sphinx_links", "args": {"withinProj": "False", "refTypeToGet": "term"}
+    },
+    {
+        "caption": "Preferences: Sphinx-Refmate",
+        "command": "edit_settings",
+        "args":
+        {
+          "base_file": "${packages}/sphinx-refmate/sphinx-refmate.sublime-settings",
+          "default": "// sphinx-refmate Settings - User\n{\n\t$0\n}\n"
+        }
+    },
+    {
+        "caption": "Key Bindings: Sphinx-Refmate",
+        "command": "edit_settings",
+        "args":
+        {
+          "base_file": "${packages}/sphinx-refmate/keymaps/Default ($platform).sublime-keymap",
+          "default": "${packages}/User/Default ($platform).sublime-keymap"
+        }
+    }
+]
