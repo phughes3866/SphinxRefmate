@@ -433,7 +433,7 @@ class InsertSphinxLinksCommand(sublime_plugin.TextCommand):
             f.close()
             return datalist, displaylist
 
-    def run(self, edit, withinProj="False", refTypeToGet='all'):
+    def run(self, edit, withinProj=False, refTypeToGet='all'):
 
         # The refTypeToGet and withinProj vars must be set in the sublime command calls to this routine
         if refTypeToGet not in ['label', 'doc', 'term', 'all']:
@@ -464,7 +464,8 @@ class InsertSphinxLinksCommand(sublime_plugin.TextCommand):
             return
 
         # Are we referencing a single project, or all 'intersphinx' projects
-        if withinProj.lower() in ['true', 'yes']:
+        # if withinProj.lower() in ['true', 'yes']:
+        if withinProj:
             # limit projects to search for refs to current project
             projKeyList = [honedSphinxMap.curProjKey]
         else:

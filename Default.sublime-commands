@@ -1,35 +1,35 @@
 [
     {
         "caption": "Sphinx-Refmate: Insert Local Project Links (All Types)",
-		"command" : "insert_sphinx_links", "args": {"withinProj": "True"}
+		"command" : "insert_sphinx_links", "args": {"withinProj": true}
     },
     {
         "caption": "Sphinx-Refmate: Insert Local Project Links (docs/pages)",
-		"command" : "insert_sphinx_links", "args": {"withinProj": "True", "refTypeToGet": "doc"}
+		"command" : "insert_sphinx_links", "args": {"withinProj": true, "refTypeToGet": "doc"}
     },
     {
         "caption": "Sphinx-Refmate: Insert Local Project Links (labels/sections)",
-		"command" : "insert_sphinx_links", "args": {"withinProj": "True", "refTypeToGet": "label"}
+		"command" : "insert_sphinx_links", "args": {"withinProj": true, "refTypeToGet": "label"}
     },
     {
         "caption": "Sphinx-Refmate: Insert Local Project Links (Glossary Terms)",
-		"command" : "insert_sphinx_links", "args": {"withinProj": "True", "refTypeToGet": "term"}
+		"command" : "insert_sphinx_links", "args": {"withinProj": true, "refTypeToGet": "term"}
     },
     {
         "caption": "Sphinx-Refmate: Insert Cross Project Links (All Types)",
-		"command" : "insert_sphinx_links", "args": {"withinProj": "False"}
+		"command" : "insert_sphinx_links", "args": {"withinProj": false}
     },
     {
         "caption": "Sphinx-Refmate: Insert Cross Project Links (docs/pages)",
-		"command" : "insert_sphinx_links", "args": {"withinProj": "False", "refTypeToGet": "doc"}
+		"command" : "insert_sphinx_links", "args": {"withinProj": false, "refTypeToGet": "doc"}
     },
     {
         "caption": "Sphinx-Refmate: Insert Cross Project Links (labels/sections)",
-		"command" : "insert_sphinx_links", "args": {"withinProj": "False", "refTypeToGet": "label"}
+		"command" : "insert_sphinx_links", "args": {"withinProj": false, "refTypeToGet": "label"}
     },
     {
         "caption": "Sphinx-Refmate: Insert Cross Project Links (Glossary Terms)",
-		"command" : "insert_sphinx_links", "args": {"withinProj": "False", "refTypeToGet": "term"}
+		"command" : "insert_sphinx_links", "args": {"withinProj": false, "refTypeToGet": "term"}
     },
     {
         "caption": "Preferences: Sphinx-Refmate",

@@ -5,7 +5,7 @@
         [
 	{
 		"id" : "SphinxRefmateToolsMenu",
-		"caption": "Sphinx xReferencing Tools",
+		"caption": "Sphinx Refmate",
 		"children":
 		[
 			{
@@ -16,22 +16,22 @@
 				[
 				{
 					"caption" : "All Links",
-					"command" : "insert_sphinx_links", "args": {"withinProj": "True"},
+					"command" : "insert_sphinx_links", "args": {"withinProj": true},
 					"mnemonic" : "A"
 				},
 				{
 					"caption" : "Page (doc) Links",
-					"command" : "insert_sphinx_links", "args": {"withinProj": "True", "refTypeToGet": "doc"},
+					"command" : "insert_sphinx_links", "args": {"withinProj": true, "refTypeToGet": "doc"},
 					"mnemonic" : "P"
 				},
 				{
 					"caption" : "Section (label) Links",
-					"command" : "insert_sphinx_links", "args": {"withinProj": "True", "refTypeToGet": "label"},
+					"command" : "insert_sphinx_links", "args": {"withinProj": true, "refTypeToGet": "label"},
 					"mnemonic" : "S"
 				},
 				{
 					"caption" : "Glossary (term) Links",
-					"command" : "insert_sphinx_links", "args": {"withinProj": "True", "refTypeToGet": "term"},
+					"command" : "insert_sphinx_links", "args": {"withinProj": true, "refTypeToGet": "term"},
 					"mnemonic" : "G"
 				},
 				{
@@ -49,22 +49,22 @@
 				[
 				{
 					"caption" : "All Links",
-					"command" : "insert_sphinx_links", "args": {"withinProj": "False"},
+					"command" : "insert_sphinx_links", "args": {"withinProj": false},
 					"mnemonic" : "A"
 				},
 				{
 					"caption" : "Page (doc) Links",
-					"command" : "insert_sphinx_links", "args": {"withinProj": "False", "refTypeToGet": "doc"},
+					"command" : "insert_sphinx_links", "args": {"withinProj": false, "refTypeToGet": "doc"},
 					"mnemonic" : "P"
 				},
 				{
 					"caption" : "Section (label) Links",
-					"command" : "insert_sphinx_links", "args": {"withinProj": "False", "refTypeToGet": "label"},
+					"command" : "insert_sphinx_links", "args": {"withinProj": false, "refTypeToGet": "label"},
 					"mnemonic" : "S"
 				},
 				{
 					"caption" : "Glossary (term) Links",
-					"command" : "insert_sphinx_links", "args": {"withinProj": "False", "refTypeToGet": "term"},
+					"command" : "insert_sphinx_links", "args": {"withinProj": false, "refTypeToGet": "term"},
 					"mnemonic" : "G"
 				}
 				]
@@ -86,23 +86,23 @@
                 "children":
                 [
                     {
-                        "id": "sphinx-refmate",
-                        "caption": "sphinx-refmate",
+                        "id": "SphinxRefmate",
+                        "caption": "Sphinx Refmate",
                         "children":
                         [
                         	{
                         	      "caption": "Settings",
                         	      "command": "edit_settings", "args":
                         	      {
-                        	          "base_file": "${packages}/sphinx-refmate/sphinx-refmate.sublime-settings",
-                        	          "default": "// sphinx-refmate Settings - User\n{\n\t$0\n}\n"
+                        	          "base_file": "${packages}/SphinxRefmate/SphinxRefmate.sublime-settings",
+                        	          "default": "// SphinxRefmate Settings - User\n{\n\t$0\n}\n"
                         	      }
                         	  },
                         	{
                         	      "caption": "Key Bindings",
                         	      "command": "edit_settings", "args":
                         	      {
-                        	          "base_file": "${packages}/sphinx-refmate/keymaps/Default ($platform).sublime-keymap",
+                        	          "base_file": "${packages}/SphinxRefmate/keymaps/Default ($platform).sublime-keymap",
                         	          "default": "${packages}/User/Default ($platform).sublime-keymap"
                         	      }
                         	  }

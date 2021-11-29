@@ -1,6 +1,6 @@
 // sphinx-refmate Settings - Plugin Defaults
 {
-	// check we're in a sphinx project before running plugin features (checks for tld: conf.py)
+	// check we're in a sphinx project before running plugin features (checks for top folder conf.py)
 	"sphinx_check": true,
 	// check we're in a restructured text context/scope before running plugin features
 	"rst_check": true,
