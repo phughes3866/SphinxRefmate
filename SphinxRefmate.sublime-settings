@@ -1,0 +1,31 @@
+// SphinxRefmate Settings - Plugin Defaults
+{
+	// check we're in a sphinx project before running plugin features (checks for top folder conf.py)
+	"sphinx_check": true,
+	// check we're in a restructured text context/scope before running plugin features
+	"rst_check": true,
+
+	// Note: Filenames in the following three list variables should either be given relative to the sublime project's top level folder,
+	// (which should also be - in most cases - the root of a sphinx docs project), or they should be given as absolute
+	// regards to the system folder tree.
+
+    // Files in the intersphinx_map_source_list are scanned, in turn, to find the first available intersphinx_mapping dict
+    // `- put the most likely/important sources earlier in the list e.g. "conf.py"
+    "intersphinx_map_source_list": [ "conf.py" ],
+
+    // List of project bibliography files from which sphinx-refmate will scan to accumulate a list of citations for insertion
+    // These should be .rst files containing patterns in the form: ".. [author_yr] Author, 1966 Great Book"
+    "bib_ref_file_list": [ "index.rst" ],
+
+    // A list of python config files for your sphinx project(s) which contain rst_epilog entries
+    // These files will be parsed sequentially to build a list of rst substitutions from any rst_epilog variables found
+    "rst_epilog_source_list": ["conf.py"]
+}
+
+// Note: All the above file lists settings can be overridden on an individual sublime text project basis, if required, 
+// by placing an entry such as the following, within the 'settings' section of the project's sublime-project file::
+//		"SphinxRefmate": { 
+//					"intersphinx_map_source_list": [ "/strangely/located/conf.py" ],
+//					"bib_ref_file_list": [ "../commondata/suite_bibliography.rst" ],
+//					"rst_epilog_source_list": [ "../commondata/rstepilog_include.py" ]
+//							}

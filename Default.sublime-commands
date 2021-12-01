@@ -1,51 +1,59 @@
 [
     {
-        "caption": "Sphinx-Refmate: Insert Local Project Links (All Types)",
+        "caption": "Sphinx Refmate: Insert Local Project Links (All Types)",
 		"command" : "insert_sphinx_links", "args": {"withinProj": true}
     },
     {
-        "caption": "Sphinx-Refmate: Insert Local Project Links (docs/pages)",
+        "caption": "Sphinx Refmate: Insert Local Project Links (docs/pages)",
 		"command" : "insert_sphinx_links", "args": {"withinProj": true, "refTypeToGet": "doc"}
     },
     {
-        "caption": "Sphinx-Refmate: Insert Local Project Links (labels/sections)",
+        "caption": "Sphinx Refmate: Insert Local Project Links (labels/sections)",
 		"command" : "insert_sphinx_links", "args": {"withinProj": true, "refTypeToGet": "label"}
     },
     {
-        "caption": "Sphinx-Refmate: Insert Local Project Links (Glossary Terms)",
+        "caption": "Sphinx Refmate: Insert Local Project Links (Glossary Terms)",
 		"command" : "insert_sphinx_links", "args": {"withinProj": true, "refTypeToGet": "term"}
     },
     {
-        "caption": "Sphinx-Refmate: Insert Cross Project Links (All Types)",
+        "caption": "Sphinx Refmate: Insert Cross Project Links (All Types)",
 		"command" : "insert_sphinx_links", "args": {"withinProj": false}
     },
     {
-        "caption": "Sphinx-Refmate: Insert Cross Project Links (docs/pages)",
+        "caption": "Sphinx Refmate: Insert Cross Project Links (docs/pages)",
 		"command" : "insert_sphinx_links", "args": {"withinProj": false, "refTypeToGet": "doc"}
     },
     {
-        "caption": "Sphinx-Refmate: Insert Cross Project Links (labels/sections)",
+        "caption": "Sphinx Refmate: Insert Cross Project Links (labels/sections)",
 		"command" : "insert_sphinx_links", "args": {"withinProj": false, "refTypeToGet": "label"}
     },
     {
-        "caption": "Sphinx-Refmate: Insert Cross Project Links (Glossary Terms)",
+        "caption": "Sphinx Refmate: Insert Cross Project Links (Glossary Terms)",
 		"command" : "insert_sphinx_links", "args": {"withinProj": false, "refTypeToGet": "term"}
     },
     {
-        "caption": "Preferences: Sphinx-Refmate",
-        "command": "edit_settings",
+        "caption": "Sphinx Refmate: Information (opens README.md file)",
+        "command": "open_file",
         "args":
         {
-          "base_file": "${packages}/sphinx-refmate/sphinx-refmate.sublime-settings",
-          "default": "// sphinx-refmate Settings - User\n{\n\t$0\n}\n"
+          "file": "${packages}/SphinxRefmate/README.md",
         }
     },
     {
-        "caption": "Key Bindings: Sphinx-Refmate",
+        "caption": "Preferences: Sphinx Refmate",
         "command": "edit_settings",
         "args":
         {
-          "base_file": "${packages}/sphinx-refmate/keymaps/Default ($platform).sublime-keymap",
+          "base_file": "${packages}/SphinxRefmate/SphinxRefmate.sublime-settings",
+          "default": "// SphinxRefmate User Settings (these settings override those in .../SphinxRefmate/SphinxRefmate.sublime-settings)\n{\n\t$0\n}\n"
+        }
+    },
+    {
+        "caption": "Key Bindings: Sphinx Refmate",
+        "command": "edit_settings",
+        "args":
+        {
+          "base_file": "${packages}/SphinxRefmate/keymaps/Default ($platform).sublime-keymap",
           "default": "${packages}/User/Default ($platform).sublime-keymap"
         }
     }

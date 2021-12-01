@@ -1,0 +1,35 @@
+The SphinxRefmate plugin has just been installed
+
+Welcome To Sphinx Refmate
+=========================
+
+"A referencing toolkit to assist with writing Sphinx Documentation projects in restructured text"
+
+If you don't know what Sphinx Documentation projects are, or what restructured text is, then you have downloaded a package that you really don't need. If you do know what these things are, and you use them, you may have just downloaded a Sublime Text plugin that could prove useful.
+
+Sphinx Refmate scans, on demand, certain documentation resources of Sphinx Docs projects in order to build a list of references (of a user selected type). These references are then presented to the user in a Sublime Text quick menu, which can be fuzzy searched so the required reference is found, and then clicked so that the appropriate restructured text reference snippet is inserted at the cursor position.
+
+Save Time and Head Scratching
+-----------------------------
+
+If, for example, you are editing a restructured text page of a Sphinx Docs web project, and you want to insert a hyperlink to a page you created about 'London Buses' a few weeks ago, you can simply press <ctrl><alt>I (<cmd><alt>I on Mac) and a list will be brought up which includes all the doc (page) links in the current Sphinx project. You can then begin typing 'London Bu..' in the selection header of the quick menu, and in doing so the precise 'doc' style link you require will become visible through the filtering, and you can click on it to insert a nicely formatted reST link. (N.B. Regular Sublime Text menus, as well as configurable key bindings, are available for all the Sphinx Refmate commands)
+
+Initial Setup
+-------------
+
+Sphinx Refmate may work for you, straight out of the box, if you have a simple one or two Sphinx projects setup, and you have the required 'intersphinx_mapping' available in an expected place. However, you may well need to adjust the plugin settings [ <Main Menu><Preferences><Package Settings><Sphinx Refmate> ] in order to get a meaningful experience. 
+
+Note: As well as the Default/User settings files, some user settings may be configured on a per Sublime Text project basis, through entries in the project's '.sublime-project' file. Brief details of how to implement per-project settings can be found in the comments at the end of the Default Sphinx Refmate plugin settings file. More comprehensive details of setting up Sphinx Refmate can be found in the plugin 'readme' file (see below for access methods).
+
+Operational Notes:
+------------------
+
+Sphinx Refmate can present page(doc), section(label), and glossary(term) style references through the parsing of a Sphinx project's 'objects.inv' file. These styles of links can also be made available for other projects if Sphinx Refmate knows where to look for that project's 'objects.inv' file. Sphinx Refmate only knows its way to 'objects.inv' files, for the current and other projects, by parsing the current project's 'intersphinx_mapping' variable (usually found in conf.py). Note that the 'intersphinx_mapping' variable is of the same format that is required for the Sphinx native intersphinx plugin, and if you are using Sphinx Refmate across multiple Sphinx projects it will be necessary to have the intersphinx plugin operational as well (in which case both plugins will utilise the same 'intersphinx_mapping' variable. If you intend to use Sphinx Refmate on a single project, this is perfectly feasible, but you will need to create an appropriately formatted 'intersphinx_mapping' variable for this to work.
+
+Sphinx Refmate can also, for the local project only, present a quick menu list of two other types of references: a) reST citations, b) reST substitutions. This is accomplished by scanning settings defined restructured text files for citations, and python files for the rst_epilog variable which defines substitutions.
+
+Read more about Sphinx Refmate for Sublime Text at:
+https://github.com/phughes3866/SphinxRefmate#readme
+
+Or access the same information via the Sublime Text command palette (now that Sphinx Refmate installed):
+Open the command palette (<ctrl/cmd><shift>P) begin typing 'sphinx refmate read...' and click on the readme entry when it appears.

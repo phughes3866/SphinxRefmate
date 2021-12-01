@@ -95,7 +95,7 @@
                         	      "command": "edit_settings", "args":
                         	      {
                         	          "base_file": "${packages}/SphinxRefmate/SphinxRefmate.sublime-settings",
-                        	          "default": "// SphinxRefmate Settings - User\n{\n\t$0\n}\n"
+                        	          "default": "// SphinxRefmate User Settings (these settings override those in .../SphinxRefmate/SphinxRefmate.sublime-settings)\n{\n\t$0\n}\n"
                         	      }
                         	  },
                         	{
