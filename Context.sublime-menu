@@ -12,7 +12,7 @@
 		[
 			{
 				"id" : "InsertLocRefFromObjectsInv",
-				"caption": "Insert Links From Current Project",
+				"caption": "Insert Links To Current Project",
 				"mnemonic" : "L",
 				"children":
 				[
@@ -29,7 +29,7 @@
 				{
 					"caption" : "Section (label) Links",
 					"command" : "insert_sphinx_links", "args": {"withinProj": true, "refTypeToGet": "label"},
-					"mnemonic" : "S"
+					"mnemonic" : "l"
 				},
 				{
 					"caption" : "Glossary (term) Links",
@@ -40,7 +40,7 @@
 			},
 			{
 				"id" : "CtxInsertXRefFromObjectsInv",
-				"caption": "Insert Links From Intersphinx Projects",
+				"caption": "Insert Links To Intersphinx Projects",
 				"mnemonic" : "x",
 				"children":
 				[
@@ -57,7 +57,7 @@
 				{
 					"caption" : "Section (label) Links",
 					"command" : "insert_sphinx_links", "args": {"withinProj": false, "refTypeToGet": "label"},
-					"mnemonic" : "S"
+					"mnemonic" : "l"
 				},
 				{
 					"caption" : "Glossary (term) Links",
@@ -68,13 +68,13 @@
 			},
 			{
 				"id" : "sphinx-refmate-bibliograpy-ref-insert",
-				"caption" : "Insert Bibliography Reference",
+				"caption" : "Insert reST Citation Reference",
 				"command" : "cite_from_biblio_files",
-				"mnemonic" : "B"
+				"mnemonic" : "C"
 			},
 			{
 				"id" : "sphinx-refmate-rst-epilog-substitution-insert",
-				"caption" : "Insert reSt substitution (from rst_epilog)",
+				"caption" : "Insert reST Substitution",
 				"command" : "insert_rst_epilog_substitution",
 				"mnemonic" : "S"
 			}

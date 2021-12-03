@@ -23,9 +23,8 @@ class CiteFromBiblioFilesCommand(sublime_plugin.TextCommand):
         if index == -1:
             # noop; nothing was selected, e.g. the user pressed escape
             return
-        args = {}
-        args['contents'] = self.insert_list[index]
-        self.view.run_command('insert_snippet', args)
+        else:
+            self.view.run_command('insert', {"characters": self.insert_list[index]})
 
     def get_refs_from_file(self, filename):
         # opens file with std rst refs and parses it into a dict of 2 part dicts (cit / ref)
@@ -54,19 +53,16 @@ class CiteFromBiblioFilesCommand(sublime_plugin.TextCommand):
         subl_top_folder_path = self.view.window().extract_variables()["folder"]
         docScope = self.view.scope_name(self.view.sel()[0].begin())
         refmate_settings = sublime.load_settings(refmate_utils.plugin_settings_file)
+        proj_plugin_settings = sublime.active_window().active_view().settings().get(refmate_utils.plugin_canon_name, {})
+        # any SphinxRefmate settings in the .sublime-project file will override same name Default/User settings
+        refmate_settings.update(proj_plugin_settings)
         if not refmate_utils.sphinx_and_rst_checks(subl_top_folder_path, docScope, refmate_settings):
             return
 
         cite_file_list = refmate_settings.get('bib_ref_file_list', [])
-        # The project's 'bib_ref_file_list' gets appended i.e. adds to rather than replaces any plugin's list
-        proj_plugin_settings = sublime.active_window().active_view().settings().get('sphinx-refmate')
-        if proj_plugin_settings:
-            extra_cite_file_list = proj_plugin_settings.get('bib_ref_file_list', [])
-            if extra_cite_file_list and type(extra_cite_file_list) == list:
-                cite_file_list.extend(extra_cite_file_list)
         if not cite_file_list:
             refmate_utils.showRefMateError("Unable to run as no bibliography files were provided in the settings.\n\n"
-                "sphinx-refmate is not currently configured for citation insertions.")
+                "The plugin is not currently configured for citation insertions.")
             return
 
         # Process our list of cite_files to build a dictionary of available citations
@@ -93,7 +89,7 @@ class CiteFromBiblioFilesCommand(sublime_plugin.TextCommand):
             if missing_filecount > 0 or empty_filecount > 0:
                 parsing_status_msg += ": Warning: {} missing/{} empty files".format(missing_filecount, empty_filecount)
             for cit, ref in collect_parse_result.items():
-                self.insert_list.append("[{}]_ ".format(cit))
+                self.insert_list.append("[{}]_".format(cit))
                 self.display_list.append("[{}] = {}".format(cit, ref))
             sublime.status_message(parsing_status_msg)
             sublime.active_window().show_quick_panel(
@@ -116,10 +112,9 @@ class InsertRstEpilogSubstitutionCommand(sublime_plugin.TextCommand):
     def on_done(self, index):
         if index == -1:
             # noop; nothing was selected, e.g. the user pressed escape
-            return 
-        args = {}
-        args['contents'] = self.insert_list[index]
-        self.view.run_command('insert_snippet', args)
+            return
+        else:
+            self.view.run_command('insert', {"characters": self.insert_list[index]})
 
     def get_rstEpilogs_from_config_file(self, config_file):
         found_rstEp = ""
@@ -139,7 +134,8 @@ class InsertRstEpilogSubstitutionCommand(sublime_plugin.TextCommand):
                     try:
                         found_rstEp += eval(compile(ast.Expression(x.value), "<ast expression", "eval"))
                     except Exception as err:
-                        print('Cannot evaluate ast expression [{}]. Gave error: {}'.format(x.value, err))
+                        print("Exception evaluating ast expression [{}]: "
+                            "{}: {}".format(x.value, err.__class__.__name__, err))
         # print('gathered: {}'.format(found_rstEp))
         return found_rstEp
 
@@ -158,24 +154,23 @@ class InsertRstEpilogSubstitutionCommand(sublime_plugin.TextCommand):
         subl_top_folder_path = self.view.window().extract_variables()["folder"]
         docScope = self.view.scope_name(self.view.sel()[0].begin())
         refmate_settings = sublime.load_settings(refmate_utils.plugin_settings_file)
+        proj_plugin_settings = sublime.active_window().active_view().settings().get(refmate_utils.plugin_canon_name, {})
+        # any SphinxRefmate settings in the .sublime-project file will override same name Default/User settings
+        refmate_settings.update(proj_plugin_settings)
         if not refmate_utils.sphinx_and_rst_checks(subl_top_folder_path, docScope, refmate_settings):
             return
 
         # Pre-populate our display/insert lists with some standard Sphinx replacements
-        self.insert_list = ["|release| ",
-                            "|version| "]
+        self.insert_list = ["|release|",
+                            "|version|"]
         self.display_list = ["|release| STD conf.py: full version str e.g. 2.5.2b3",
                             "|version| STD conf.py: major + minor versions e.g. 2.5"]
 
         sphinx_rst_epilog_files = refmate_settings.get('rst_epilog_source_list', [])
-        # The project's 'extra_rst_epilog_source_list' gets appended i.e. adds to rather than replaces any plugin's list
-        proj_plugin_settings = sublime.active_window().active_view().settings().get('sphinx-refmate')
-        if proj_plugin_settings:
-            sphinx_rst_epilog_files.extend(proj_plugin_settings.get('extra_rst_epilog_source_list', []))
         if not sphinx_rst_epilog_files:
-            refmate_utils.showRefMateError("Search file list for rst_epilog entries is empty.\n\n"
-                "sphinx-refmate is not configured for automatic rst_epilog insertions at this time.\n\n"
-                "Please update the sphinx-refmate plugin settings if you wish to implement this feature.")
+            refmate_utils.showRefMateError("Search file list for rst_epilog / rst_prolog entries is empty.\n\n"
+                "This plugin is not currently configured for automatic reST substitution insertions. "
+                "Please update the settings if you wish to implement this feature.")
         else:
             empty_filecount = 0
             missing_filecount = 0
@@ -193,7 +188,7 @@ class InsertRstEpilogSubstitutionCommand(sublime_plugin.TextCommand):
                         convertedRstEpilog = self.get_rst_epilog_2part_replacement_dict(oneRstEpilog)
                         if convertedRstEpilog:
                             for shorty, longy in convertedRstEpilog.items():
-                                self.insert_list.append("|{}| ".format(shorty))
+                                self.insert_list.append("|{}|".format(shorty))
                                 self.display_list.append("|{}| = {}".format(shorty, longy))
             parsing_status_msg = "{} replacements loaded from {} rst_epilog locations"\
                                         .format(len(self.display_list) - 2, len(sphinx_rst_epilog_files))

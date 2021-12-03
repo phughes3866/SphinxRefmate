@@ -10,7 +10,7 @@
 		[
 			{
 				"id" : "InsertLocRefFromObjectsInv",
-				"caption": "Insert Links From Current Project",
+				"caption": "Insert Links To Current Project",
 				"mnemonic" : "L",
 				"children":
 				[
@@ -27,7 +27,7 @@
 				{
 					"caption" : "Section (label) Links",
 					"command" : "insert_sphinx_links", "args": {"withinProj": true, "refTypeToGet": "label"},
-					"mnemonic" : "S"
+					"mnemonic" : "l"
 				},
 				{
 					"caption" : "Glossary (term) Links",
@@ -35,15 +35,20 @@
 					"mnemonic" : "G"
 				},
 				{
-					"caption" : "rst Epilog entries",
+					"caption" : "Insert reST Citation Reference",
+					"command" : "cite_from_biblio_files",
+					"mnemonic" : "C"
+				},
+				{
+					"caption" : "Insert reST Substitution",
 					"command" : "insert_rst_epilog_substitution",
-					"mnemonic" : "E"
+					"mnemonic" : "S"
 				}
 				]
 			},
 			{
 				"id" : "InsertXRefFromObjectsInv",
-				"caption": "Insert Links From Intersphinx Projects",
+				"caption": "Insert Links To Intersphinx Projects",
 				"mnemonic" : "x",
 				"children":
 				[
@@ -60,7 +65,7 @@
 				{
 					"caption" : "Section (label) Links",
 					"command" : "insert_sphinx_links", "args": {"withinProj": false, "refTypeToGet": "label"},
-					"mnemonic" : "S"
+					"mnemonic" : "l"
 				},
 				{
 					"caption" : "Glossary (term) Links",
