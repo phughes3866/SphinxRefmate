@@ -8,11 +8,6 @@
 		"command": "insert_sphinx_links",
 		"args":	{"withinProj": true, "refTypeToGet": "all"},
 		"context": [{ "key": "selector", "operator": "equal", "operand": "text.restructuredtext" }]
-    }, {
-		"keys": ["super+alt+o"], 
-		"command": "insert_sphinx_links",
-		"args": {"withinProj": false, "refTypeToGet": "all"},
-		"context": [{ "key": "selector", "operator": "equal", "operand": "text.restructuredtext" }]
     },  {
 		"keys": ["super+alt+l"], "command": "cite_from_biblio_files", 
 		"context": [{ "key": "selector", "operator": "equal", "operand": "text.restructuredtext" }]
