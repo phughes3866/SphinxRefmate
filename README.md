@@ -24,7 +24,7 @@ The following reference types can be gathered from the local Sphinx Doc project,
 * Glossary terms (reST `:term:`)
 
 ### Save Time and Head Scratching
-If, for example, you are editing a restructured text page of a Sphinx Docs web project, and you want to insert a hyperlink to a page you created about 'London Buses' a few weeks ago, you can simply press `<ctrl><alt>I` (`<cmd><alt>I` on Mac) and a list will be brought up which includes all the doc (page) links in the current Sphinx project. You can then begin typing _'London Bu..'_ in the selection header of the quick-panel, and in doing so the precise 'doc' style link you require will become visible through the filtering, and you can click on it to insert a nicely formatted reST link. (N.B. Regular Sublime Text menus, as well as configurable key bindings, are available for all the Sphinx Refmate commands.)
+If, for example, you are editing a restructured text page of a Sphinx Docs web project, and you want to insert a hyperlink to a page you created about 'London Buses' a few weeks ago - but you can't remember its reference name - with Sphinx Refmate you can simply click the `Insert Links To Current Project` entry under the `Tools` -> `Sphinx Refmate` menu (or access this command via another method e.g. a user defined key binding) and a quick-panel list will be brought up which includes all the doc (page) links in the current Sphinx project. You can then begin typing _'London Bu..'_ in the selection header of the quick-panel, and in doing so the precise 'doc' style link you require will become visible through the filtering, and you can click on it to insert a nicely formatted reST link. (N.B. Regular Sublime Text menus, as well as configurable key bindings, are available for all the Sphinx Refmate commands.)
 
 ## Installation
 Installation should be carried out using the [Sublime Package Manager](http://wbond.net/sublime_packages/package_control). 
@@ -40,7 +40,7 @@ Pull up the command palette via key binding or menu: `Tools` -> `Command Palette
 
 -- or --
 
-Use the right-click context menu (only available when you're in a `text.restructuredtext` scope). Right clicking brings up various choices through `Sphinx Refmate` -> `various submenus`.
+Use the right-click context menu (by default, only available when you're in a `text.restructuredtext` scope). Right clicking brings up various choices through `Sphinx Refmate` -> `various submenus`.
 
 Note: The context menu can be completely disabled, or made context independent, via the plugin settings (see below) if required.
 

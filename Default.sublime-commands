@@ -32,7 +32,7 @@
 		"command" : "insert_sphinx_links", "args": {"withinProj": false, "refTypeToGet": "term"}
     },
     {
-        "caption": "Sphinx Refmate: Information (opens README.md file)",
+        "caption": "Sphinx Refmate: Readme/Information (opens README.md file)",
         "command": "open_file",
         "args":
         {
@@ -40,7 +40,7 @@
         }
     },
     {
-        "caption": "Preferences: Sphinx Refmate",
+        "caption": "Preferences: Sphinx Refmate Settings",
         "command": "edit_settings",
         "args":
         {
@@ -49,12 +49,12 @@
         }
     },
     {
-        "caption": "Key Bindings: Sphinx Refmate",
-        "command": "edit_settings",
-        "args":
-        {
-          "base_file": "${packages}/SphinxRefmate/keymaps/Default ($platform).sublime-keymap",
-          "default": "${packages}/User/Default ($platform).sublime-keymap"
-        }
+        "caption": "Preferences: Sphinx Refmate Key Bindings",
+        "command": "edit_settings", "args":
+		{
+		  "base_file": "${packages}/SphinxRefmate/Example.sublime-keymap",
+		  "default": "\n[\n\t// Default User Keymap File (add key bindings below)\n\t$0\n]\n",
+		  "user_file": "${packages}/User/Default ($platform).sublime-keymap"
+		}
     }
 ]
