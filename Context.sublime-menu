@@ -2,11 +2,7 @@
 	{
 		"id" : "SphinxRefmateCtxMenu",
 		"caption": "Sphinx Refmate",
-		"command" : "contextually_visible_parent_menu_item", "args": {
-						            // this is a dummy command to limit the visibility of this menu
-						            // to a restructured text context only
-						            "scope_selector": "text.restructuredtext"
-								},
+		"command" : "contextually_visible_parent_menu_item",
         "mnemonic": "R",
 		"children":
 		[

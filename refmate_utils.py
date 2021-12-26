@@ -7,28 +7,24 @@ plugin_settings_file = 'SphinxRefmate.sublime-settings'
 plugin_canon_name = 'SphinxRefmate'
 
 
-class ContextuallyVisibleCommandMenuItemCommand(sublime_plugin.TextCommand):
-    """
-    A wrapper to be used for menu commands to make them visible only in certain scopes/contexts.
-    The class overrides the 'is_visible' method so it returns True only when the current scope matches the target scope
-    """
-    def run(self, edit, command_name, scope_selector, **kwargs):
-        self.view.run_command(command_name, kwargs)
-
-    def is_visible(self, command_name, scope_selector, **kwargs):
-        return self.view.match_selector(self.view.sel()[0].begin(), scope_selector)
-
-
 class ContextuallyVisibleParentMenuItemCommand(sublime_plugin.TextCommand):
     """
     A wrapper to be used for parent menus (command-less) to make them visible only in certain scopes/contexts.
     The class overrides the 'is_visible' method so it returns True only when the current scope matches the target scope
     """
-    def run(self, edit, scope_selector, **kwargs):
+    def run(self, edit, **kwargs):
         pass
 
-    def is_visible(self, scope_selector, **kwargs):
-        return self.view.match_selector(self.view.sel()[0].begin(), scope_selector)
+    def is_visible(self, **kwargs):
+        refmate_settings = sublime.load_settings(plugin_settings_file)
+        proj_plugin_settings = sublime.active_window().active_view().settings().get(plugin_canon_name, {})
+        # any SphinxRefmate settings in the .sublime-project file will override same name Default/User settings
+        refmate_settings.update(proj_plugin_settings)
+        if refmate_settings.get('rst_check'):
+            contextOK = self.view.match_selector(self.view.sel()[0].begin(), "text.restructuredtext")
+        else:
+            contextOK = True
+        return refmate_settings.get('enable_context_menu', False) and contextOK
 
 
 def sphinx_and_rst_checks(proj_folder, currentScope, refmate_settings):

@@ -4,6 +4,8 @@
 	"sphinx_check": true,
 	// check we're in a restructured text context/scope before running plugin features
 	"rst_check": true,
+	// enable context 'right-click' menu in restructured text environments
+	"enable_context_menu": true,
 	// prefix to identify private projects (e.g. on private network, unreachable by public) in intersphinx_mapping
 	// projects denoted in intersphinx_mapping, which don't have names that begin with this prefix, are considered public
 	"priv_project_prefix": "priv",

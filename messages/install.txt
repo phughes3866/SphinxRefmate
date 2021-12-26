@@ -5,18 +5,18 @@ Welcome To Sphinx Refmate
 
 "A referencing toolkit to assist with the creation of Sphinx Documentation projects in restructured text"
 
-If you don't know what Sphinx Documentation projects are, or what restructured text (reST) is, then you have downloaded a package that you really don't need. If you do know what these things are, and you use them, you may have just downloaded a Sublime Text plugin that could prove useful.
+If you don't know what Sphinx Documentation projects are, or what restructured text (reST) is, then you have just installed a plugin that will be no use to you whatsoever. If you do know what these things are, and you use them, you may just have acquired a lump of software that will save you a heap of time and head scratching.
 
-Sphinx Refmate scans, on demand, various documentation resources of Sphinx Docs projects in order to build a list of references (of a user selected type). These references are then presented to the user in a Sublime Text quick-panel, which can be fuzzy searched so the required reference is found, and then clicked so that the appropriate restructured text reference snippet is inserted at the cursor position.
+Sphinx Refmate scans, on demand, various documentation resources of Sphinx Docs projects in order to build a list of references (of user selected type or types). These references are then presented to the user in a Sublime Text quick-panel, which can be fuzzy searched so the required reference is found, and then clicked so that the appropriate restructured text reference snippet is inserted at the cursor position.
 
 Save Time and Head Scratching
 -----------------------------
 
-If, for example, you are editing a restructured text page of a Sphinx Docs web project, and you want to insert a hyperlink to a page you created about 'London Buses' a few weeks ago - but you can't remember its reference name - with Sphinx Refmate you can simply press <ctrl><alt>I (<cmd><alt>I on Mac) and a quick-panel list will be brought up which includes all the doc (page) links in the current Sphinx project. You can then begin typing 'London Bu..' in the selection header of the quick-panel, and in doing so the precise 'doc' style link you require will become visible through Sublime's fuzzy filtering, and you can click on it to insert a nicely formatted reST link to your London Buses page.
+If, for example, you are editing a restructured text page of a Sphinx Docs web project, and you want to insert a hyperlink to a page you created about 'London Buses' a few weeks ago - but you can't remember its reference name - with Sphinx Refmate you can simply click the 'Insert Links To Current Project' entry under the 'Tools' -> 'Sphinx Refmate' menu (or access this command via another method e.g. a user defined key binding) and a quick-panel list will be brought up which includes all the doc (page) links in the current Sphinx project. You can then begin typing 'London Bu..' in the selection header of the quick-panel, and in doing so the precise 'doc' style link you require will become visible through Sublime's fuzzy filtering, and you can click on it to insert a nicely formatted reST link to your London Buses page.
 
 In total Sphinx Refmate can bring 5 types of Sphinx/reST references/insertions to the quick-panel in such a way: 1) page refs(:doc:), 2) section/label refs(:ref:), 3) glossary terms (:term:), 4) citation references ([author_yr]_), 5) substitution references (|shorty|)
 
-Regular Sublime Text menus, context menus and configurable key bindings are available for all the Sphinx Refmate referencing functions.
+Sublime Text 'Tool' menu entries, and Command Palette entries, are available for all the Sphinx Refmate referencing functions. Context (right-click) menus and key bindings can additionally be configured to suit the user.
 
 Initial Setup
 -------------

@@ -36,42 +36,29 @@ Installation should be carried out using the [Sublime Package Manager](http://wb
 It is also possible to clone from the [SphinxRefmate](https://github.com/phughes3866/SphinxRefmate) github repository directly into your Sublime Text **Packages** directory.
 
 ## Usage
-Tools -> Command Palette (`Cmd+Shift+P` or `Ctrl+Shift+P`) and type `Sphinx Refmate`.
+Pull up the command palette via key binding or menu: `Tools` -> `Command Palette` and type `Sphinx Refmate` to bring up all the commands.
 
 -- or --
 
-Use the pre-set key bindings (Note: Might not work if these are overridden by other plugins in your setup):
+Use the right-click context menu (only available when you're in a `text.restructuredtext` scope). Right clicking brings up various choices through `Sphinx Refmate` -> `various submenus`.
 
-* Insert local project ref/doc/term references: `Ctrl+Alt+I` (or `Cmd+Alt+I` if you're on a Mac).
-* Insert multi project ref/doc/term references: `Ctrl+Alt+O` (or `Cmd+Alt+O` if you're on a Mac).
-* Insert bibliography citations: `Ctrl+Alt+L` (or `Cmd+Alt+L` if you're on a Mac).
-* Insert reST substitutions: `Ctrl+Alt+K` (or `Cmd+Alt+K` if you're on a Mac).
+Note: The context menu can be completely disabled, or made context independent, via the plugin settings (see below) if required.
 
 -- or --
 
-Use the context menu:
-
-Right click in the current buffer and select `Sphinx Refmate` -> `submenus`.
-
-Note: The context menu is context sensitive and will only show when you're in a `text.restructuredtext` scope.
-
--- or --
-
-Use the main topbar menu in Sublime Text: `Tools` -> `Sphinx Refmate` -> `submenus`
-
-## Key Bindings
-Plugin key bindings can be edited via `Preferences` -> `Package Settings` -> `Sphinx Refmate`, which presents the standard twin panel of default/user key bindings. 
+Use the main topbar menu in Sublime Text: `Tools` -> `Sphinx Refmate` -> `various submenus`
 
 ## Settings
-Plugin settings can also be edited via `Preferences` -> `Package Settings` -> `Sphinx Refmate`. Below is a list of all the available SphinxRefmate settings, and their impact on plugin functionality.
+Plugin settings can be edited via `Preferences` -> `Package Settings` -> `Sphinx Refmate` -> `Settings`. Below is a list of all the available SphinxRefmate settings, and their impact on plugin functionality.
 
 ### "sphinx_check": true
 This setting determines whether Sphinx Refmate will check if it's running in a Sphinx Doc project before running plugin features (checks for top folder conf.py). Set to `false` to run in any environment.
 
+### "enable_context_menu": true
+When this is set to `true` the 'right-click' context menu will show `Sphinx Refmate` menus in a restructuredText scope (or all scopes if `rst_check` is set to `false`). Set `enable_context_menu` to `false` to disable `Sphinx Refmate` context menus completely.
+
 ### "rst_check": true
 This setting determines whether Sphinx Refmate will check if the edit cursor is in a restructured text context (scope) before running plugin features. Set to `false` to run in any scope.
-
-**NOTE:**  _Sphinx Refmate's right-click context menu is set to only be displayed in restructured text scopes, regardless of how "rst_check" is set._
 
 ### "priv_project_prefix": "priv"
 Sphinx Refmate utilises an 'intersphinx_mapping' variable (see below) within which Sphinx Doc projects are defined by a short name key. If this name key begins with the _priv_project_prefix_ (default 'priv'), then Sphinx Refmate will consider this project private rather than public e.g. a local lan based html site rather than internet based. It is important for Sphinx Refmate to differentiate between private and public projects as unreachable links to private sites should not be offered up for insertion when editing public sites. 
@@ -104,9 +91,12 @@ by placing an entry such as the following, within the 'settings' section of the 
 
 An additional Sphinx Refmate setting is definable at project level, which is not available in the Default/User settings. This is the `cur_project_intersphinx_map_name`. This gives Sphinx Refmate an assured way of identifying the current project line within the intersphinx_mapping variable. Note that it is not necessary to implement this setting as Sphinx Refmate has a fairly robust way of working out which intersphinx_mapping line relates to the current project. However, you should definitely set this variable to overcome any errors that Sphinx Refmate might report concerning an inability to identify the current project.
 
+## Key Bindings
+No key bindings are enabled by default. Plugin key bindings can be edited via `Preferences` -> `Package Settings` -> `Sphinx Refmate` -> `Key Bindings`, which presents a twin panel of Example/user key bindings. Example key bindings can be copied over to an active key bindings file to enable them, and configured as per user preferences. 
+
 ## Quick Panel Display Key
 
-For lists of ref/doc/term type references, lines in the quick panel will be prefixed by the intersphinx_mapping name of the project being referenced e.g. `myproj>`. Additionally there will be an asterix prefix e.g. `*myproj>` to denote the current project (the one which is currently being edited).
+For lists of ref/doc/term type references, lines in the quick panel will be prefixed by the intersphinx_mapping name of the project being referenced e.g. `myproj>`. Additionally there may be an asterix prefix e.g. `*myproj>`, which denotes that the reference belongs to the current project (the one which is currently being edited).
 
 For lists of citation/substitution type references there will be no prefixes. These types of references always come from the current project under edit.
 

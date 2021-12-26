@@ -1,9 +1,10 @@
 [
-	    {
+    {
+        // Locates main "Tools" menu
         "id": "tools",
         "children":
         [
-	{
+		{
 		"id" : "SphinxRefmateToolsMenu",
 		"caption": "Sphinx Refmate",
 		"children":
@@ -79,14 +80,12 @@
         ]
     },
     {
-        // "caption": "Preferences",
-        // "mnemonic": "n",
+        // Locates main "Preferences" menu
         "id": "preferences",
         "children":
         [
             {
-                // "caption": "Package Settings",
-                // "mnemonic": "P",
+                // Locates "Package Settings" submenu
                 "id": "package-settings",
                 "children":
                 [
@@ -107,8 +106,9 @@
                         	      "caption": "Key Bindings",
                         	      "command": "edit_settings", "args":
                         	      {
-                        	          "base_file": "${packages}/SphinxRefmate/keymaps/Default ($platform).sublime-keymap",
-                        	          "default": "${packages}/User/Default ($platform).sublime-keymap"
+                        	          "base_file": "${packages}/SphinxRefmate/Example.sublime-keymap",
+                        	          "default": "\n[\n\t// Default User Keymap File (add key bindings below)\n\t$0\n]\n",
+                        	          "user_file": "${packages}/User/Default ($platform).sublime-keymap"
                         	      }
                         	  }
 
