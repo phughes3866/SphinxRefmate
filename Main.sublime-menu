@@ -1,0 +1,121 @@
+[
+    {
+        // Locates main "Tools" menu
+        "id": "tools",
+        "children":
+        [
+		{
+		"id" : "SphinxRefmateToolsMenu",
+		"caption": "Sphinx Refmate",
+		"children":
+		[
+			{
+				"id" : "InsertLocRefFromObjectsInv",
+				"caption": "Insert Links To Current Project",
+				"mnemonic" : "L",
+				"children":
+				[
+				{
+					"caption" : "All Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": true},
+					"mnemonic" : "A"
+				},
+				{
+					"caption" : "Page (doc) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": true, "refTypeToGet": "doc"},
+					"mnemonic" : "P"
+				},
+				{
+					"caption" : "Section (label) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": true, "refTypeToGet": "label"},
+					"mnemonic" : "l"
+				},
+				{
+					"caption" : "Glossary (term) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": true, "refTypeToGet": "term"},
+					"mnemonic" : "G"
+				},
+				{
+					"caption" : "Insert reST Citation Reference",
+					"command" : "cite_from_biblio_files",
+					"mnemonic" : "C"
+				},
+				{
+					"caption" : "Insert reST Substitution",
+					"command" : "insert_rst_epilog_substitution",
+					"mnemonic" : "S"
+				}
+				]
+			},
+			{
+				"id" : "InsertXRefFromObjectsInv",
+				"caption": "Insert Links To Intersphinx Projects",
+				"mnemonic" : "x",
+				"children":
+				[
+				{
+					"caption" : "All Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": false},
+					"mnemonic" : "A"
+				},
+				{
+					"caption" : "Page (doc) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": false, "refTypeToGet": "doc"},
+					"mnemonic" : "P"
+				},
+				{
+					"caption" : "Section (label) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": false, "refTypeToGet": "label"},
+					"mnemonic" : "l"
+				},
+				{
+					"caption" : "Glossary (term) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": false, "refTypeToGet": "term"},
+					"mnemonic" : "G"
+				}
+				]
+			},
+		]
+	}
+        ]
+    },
+    {
+        // Locates main "Preferences" menu
+        "id": "preferences",
+        "children":
+        [
+            {
+                // Locates "Package Settings" submenu
+                "id": "package-settings",
+                "children":
+                [
+                    {
+                        "id": "SphinxRefmate",
+                        "caption": "Sphinx Refmate",
+                        "children":
+                        [
+                        	{
+                        	      "caption": "Settings",
+                        	      "command": "edit_settings", "args":
+                        	      {
+                        	          "base_file": "${packages}/SphinxRefmate/SphinxRefmate.sublime-settings",
+                        	          "default": "// SphinxRefmate User Settings (these settings override those in .../SphinxRefmate/SphinxRefmate.sublime-settings)\n{\n\t$0\n}\n"
+                        	      }
+                        	  },
+                        	{
+                        	      "caption": "Key Bindings",
+                        	      "command": "edit_settings", "args":
+                        	      {
+                        	          "base_file": "${packages}/SphinxRefmate/Example.sublime-keymap",
+                        	          "default": "\n[\n\t// Default User Keymap File (add key bindings below)\n\t$0\n]\n",
+                        	          "user_file": "${packages}/User/Default ($platform).sublime-keymap"
+                        	      }
+                        	  }
+
+                        ]
+                    }
+                ]
+            }
+        ]
+    }
+]

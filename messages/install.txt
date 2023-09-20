@@ -1,0 +1,48 @@
+The SphinxRefmate plugin has just been installed
+
+Welcome To Sphinx Refmate
+=========================
+
+"A referencing toolkit to assist with the creation of Sphinx Documentation projects in restructured text"
+
+If you don't know what Sphinx Documentation projects are, or what restructured text (reST) is, then you have just installed a plugin that will be no use to you whatsoever. If you do know what these things are, and you use them, you may just have acquired a lump of software that will save you a heap of time and head scratching.
+
+Sphinx Refmate scans, on demand, various documentation resources of Sphinx Docs projects in order to build a list of references (of user selected type or types). These references are then presented to the user in a Sublime Text quick-panel, which can be fuzzy searched so the required reference is found, and then clicked so that the appropriate restructured text reference snippet is inserted at the cursor position.
+
+Save Time and Head Scratching
+-----------------------------
+
+If, for example, you are editing a restructured text page of a Sphinx Docs web project, and you want to insert a hyperlink to a page you created about 'London Buses' a few weeks ago - but you can't remember its reference name - with Sphinx Refmate you can simply click the 'Insert Links To Current Project' entry under the 'Tools' -> 'Sphinx Refmate' menu (or access this command via another method e.g. a user defined key binding) and a quick-panel list will be brought up which includes all the doc (page) links in the current Sphinx project. You can then begin typing 'London Bu..' in the selection header of the quick-panel, and in doing so the precise 'doc' style link you require will become visible through Sublime's fuzzy filtering, and you can click on it to insert a nicely formatted reST link to your London Buses page.
+
+In total Sphinx Refmate can bring 5 types of Sphinx/reST references/insertions to the quick-panel in such a way: 1) page refs(:doc:), 2) section/label refs(:ref:), 3) glossary terms (:term:), 4) citation references ([author_yr]_), 5) substitution references (|shorty|)
+
+Sublime Text 'Tool' menu entries, and Command Palette entries, are available for all the Sphinx Refmate referencing functions. Context (right-click) menus and key bindings can additionally be configured to suit the user.
+
+Initial Setup
+-------------
+
+Requirement: Your Sublime Text instance top level folder (whether you are working in a defined Sublime Text project or not) MUST align with the Sphinx Doc project's top level folder (where conf.py is located). This is a standard setup when editing a Sphinx Doc project with Sublime Text.
+
+With the above requirement satisfied, the core features of Sphinx Refmate may work for you, straight out of the box, particularly if you have only a small number of Sphinx projects to manage and you have the required 'intersphinx_mapping' variable available in the usual place (conf.py). However, you will still need to adjust the plugin settings [ <Main Menu><Preferences><Package Settings><Sphinx Refmate> ] to use all the Sphinx Refmate features.
+
+Hints About Setting Up
+----------------------
+
+A: To ensure smooth functionality of doc/ref/term style referencing you'll need to make sure that configurations in the following two locations work together nicely:
+1: The SphinxRefmate settings
+2: The Sphinx Doc project's python intersphinx_mapping variable (usually in the Sphinx project's conf.py file)
+
+B: To ensure smooth functionality of reST citation referencing you'll need to make sure that the SphinxRefmate settings contain a list of the Sphinx project's reST file(s) in which project wide reST citations can be found.
+
+C: To ensure smooth functionality of reST substitution insertions you'll need to make sure that the SphinxRefmate settings contain a list of the Sphinx project's python configuration file(s) in which 'rst_epilog' variables reside that contain reST substitution definitions.
+
+Note: If required, SphinxRefmate's Default/User settings can be overridden on a per Sublime Text project basis by placing entries in the 'settings' -> 'SphinxRefmate' section of a project's '.sublime-project' file. Brief details of how to implement per-project settings can be found in the comments at the end of the Default Sphinx Refmate plugin settings file [ <Main Menu><Preferences><Package Settings><Sphinx Refmate> ].
+
+Detailed information about setting up Sphinx Refmate can be found at: https://github.com/phughes3866/SphinxRefmate#readme, or you can access the same (raw markdown) information via the Sublime Text command palette (once Sphinx Refmate is installed) by opening the command palette (<ctrl/cmd><shift>P) and typing 'sphinx refmate read...' and then clicking on the 'Sphinx Refmate readme' entry when it appears.
+
+Operational Notes:
+------------------
+
+Sphinx Refmate presents page(doc), section(label), and glossary(term) style references through the parsing of a Sphinx project's 'objects.inv' file. Links to these styles of references can also be discovered for other Sphinx Doc projects if Sphinx Refmate knows where to look for that project's 'objects.inv' file. Sphinx Refmate only knows its way to 'objects.inv' files through looking at the current project's 'intersphinx_mapping' variable (if this pre-exists it is usually found in conf.py). Note that the 'intersphinx_mapping' variable is of the same format that is required for the Sphinx native Intersphinx extension, and if you are using Sphinx Refmate across multiple Sphinx projects it will be necessary to have the Intersphinx extension operational as well (in which case both Intersphinx and Sphinx Refmate will utilise the same 'intersphinx_mapping' variable). If you intend to use Sphinx Refmate on a single Sphinx Doc project, this is perfectly feasible. Under such circumstances Intersphinx will not be required, but an 'intersphinx_mapping' variable will need to be created for Sphinx Refmate to work.
+
+Sphinx Refmate can also, for the local project only, present a quick-panel list of two other types of references: a) reST citations, b) reST substitutions. This is accomplished by scanning settings defined restructured text files for citations, and python files for the rst_epilog variable which defines substitutions (N.B. the scanning of rst_prolog files for reST substitutions is not currently undertaken, but this may be implemented in the future. Please raise a feature request if you think this feature would be useful).

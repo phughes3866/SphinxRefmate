@@ -1,0 +1,39 @@
+[
+
+// Example key bindings covering all the SphinxRefmate commands
+
+// NOTE: because this file is named Example, and doesn't end in: (Windows)
+//       or (OSX) or (Linux), it isn't loaded by Sublime Text. To enable any of 
+//       the key bindings you must copy its config to a .sublime-keymap file that
+//		 Sublime Text does load e.g. {packages}/User/Default (Linux).sublime-keymap
+
+// NOTE: It is left to the user to manage their Sublime Text setup so that key binding
+//       conflicts are avoided.
+
+    {
+		"keys": ["ctrl+alt+i"], 
+		"command": "insert_sphinx_links",
+		"args":	{"withinProj": true, "refTypeToGet": "all"},
+		"context": [{ "key": "selector", "operator": "equal", "operand": "text.restructuredtext" }]
+    },
+    {
+		"keys": ["ctrl+alt+o"], 
+		"command": "insert_sphinx_links",
+		"args": {"withinProj": false, "refTypeToGet": "all"},
+		"context": [{ "key": "selector", "operator": "equal", "operand": "text.restructuredtext" }]
+	},
+	// The above 'intra' and 'inter' project referencing commands cover all available ref types
+	// In order to target a specific ref type, change the "refTypeToGet" setting to one of
+	// "label", "doc" or "term", e.g. "refTypeToGet": "term"
+
+
+	{
+		"keys": ["ctrl+alt+k"],
+		"command": "insert_rst_epilog_substitution",
+		"context": [{ "key": "selector", "operator": "equal", "operand": "text.restructuredtext" }]
+    },
+    {
+		"keys": ["ctrl+alt+l"], "command": "cite_from_biblio_files", 
+		"context": [{ "key": "selector", "operator": "equal", "operand": "text.restructuredtext" }]
+    }, 
+]

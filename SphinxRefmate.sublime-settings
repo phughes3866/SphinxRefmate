@@ -1,0 +1,40 @@
+// SphinxRefmate Settings - Plugin Defaults
+{
+	// check we're in a sphinx project before running plugin features (checks for top folder conf.py)
+	"sphinx_check": true,
+	// check we're in a restructured text context/scope before running plugin features
+	"rst_check": true,
+	// enable context 'right-click' menu in restructured text environments
+	"enable_context_menu": true,
+	// prefix to identify private projects (e.g. on private network, unreachable by public) in intersphinx_mapping
+	// projects denoted in intersphinx_mapping, which don't have names that begin with this prefix, are considered public
+	"priv_project_prefix": "priv",
+
+	// Note: Filenames in the following three list variables should either be given relative to the sublime project's top level folder,
+	// (which should also be - in most cases - the root of a sphinx docs project), or they should be given as absolute
+	// regards to the system folder tree.
+
+    // Files in the intersphinx_map_source_list are scanned, in turn, to find the first available intersphinx_mapping dict
+    // `- put the most likely/important sources earlier in the list e.g. "conf.py"
+    "intersphinx_map_source_list": [ "conf.py" ],
+
+    // List of project bibliography files from which will be scanned to accumulate a list of citations for insertion
+    // These should be .rst files containing patterns in the form: ".. [author_yr] Author, 1966 Great Book"
+    "bib_ref_file_list": [ "index.rst" ],
+
+    // A list of python config files for your sphinx project(s) which contain rst_epilog entries
+    // These files will be parsed sequentially to build a list of rst substitutions from any rst_epilog variables found
+    "rst_epilog_source_list": ["conf.py"]
+}
+
+// Note: All the above settings can be overridden on an individual sublime text project basis, if required, 
+// by placing an entry such as the following, within the 'settings' section of the project's sublime-project file::
+//		"SphinxRefmate": { 
+//					"intersphinx_map_source_list": [ "/strangely/located/conf.py" ],
+//					"bib_ref_file_list": [ "../commondata/suite_bibliography.rst" ],
+//					"rst_epilog_source_list": [ "../commondata/rstepilog_include.py" ],
+//					// The following setting is only valid in .sublime-project files
+//                  // It helps SphinxRefmate identify the current project in the intersphinx_mapping
+//					"cur_proj_intersphinx_map_name": "sqsh"
+//							}
+// For more details on configuration see: https://github.com/phughes3866/SphinxRefmate#readme

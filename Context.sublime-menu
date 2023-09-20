@@ -1,0 +1,79 @@
+[
+	{
+		"id" : "SphinxRefmateCtxMenu",
+		"caption": "Sphinx Refmate",
+		"command" : "contextually_visible_parent_menu_item",
+        "mnemonic": "R",
+		"children":
+		[
+			{
+				"id" : "InsertLocRefFromObjectsInv",
+				"caption": "Insert Links To Current Project",
+				"mnemonic" : "L",
+				"children":
+				[
+				{
+					"caption" : "All Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": true},
+					"mnemonic" : "A"
+				},
+				{
+					"caption" : "Page (doc) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": true, "refTypeToGet": "doc"},
+					"mnemonic" : "P"
+				},
+				{
+					"caption" : "Section (label) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": true, "refTypeToGet": "label"},
+					"mnemonic" : "l"
+				},
+				{
+					"caption" : "Glossary (term) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": true, "refTypeToGet": "term"},
+					"mnemonic" : "G"
+				}
+				]
+			},
+			{
+				"id" : "CtxInsertXRefFromObjectsInv",
+				"caption": "Insert Links To Intersphinx Projects",
+				"mnemonic" : "x",
+				"children":
+				[
+				{
+					"caption" : "All Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": false},
+					"mnemonic" : "A"
+				},
+				{
+					"caption" : "Page (doc) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": false, "refTypeToGet": "doc"},
+					"mnemonic" : "P"
+				},
+				{
+					"caption" : "Section (label) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": false, "refTypeToGet": "label"},
+					"mnemonic" : "l"
+				},
+				{
+					"caption" : "Glossary (term) Links",
+					"command" : "insert_sphinx_links", "args": {"withinProj": false, "refTypeToGet": "term"},
+					"mnemonic" : "G"
+				}
+				]
+			},
+			{
+				"id" : "sphinx-refmate-bibliograpy-ref-insert",
+				"caption" : "Insert reST Citation Reference",
+				"command" : "cite_from_biblio_files",
+				"mnemonic" : "C"
+			},
+			{
+				"id" : "sphinx-refmate-rst-epilog-substitution-insert",
+				"caption" : "Insert reST Substitution",
+				"command" : "insert_rst_epilog_substitution",
+				"mnemonic" : "S"
+			}
+		]
+	}
+]
