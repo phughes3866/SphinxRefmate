@@ -2,13 +2,14 @@
 	{
 		"id" : "SphinxRefmateCtxMenu",
 		"caption": "Sphinx Refmate",
-		"command" : "contextually_visible_parent_menu_item",
+		"command" : "visible_if_have_conf_py_and_rst_context",
         "mnemonic": "R",
 		"children":
 		[
 			{
 				"id" : "InsertLocRefFromObjectsInv",
 				"caption": "Insert Links To Current Project",
+				"command" : "show_int_links_if_intersphinx_checks_ok",
 				"mnemonic" : "L",
 				"children":
 				[
@@ -37,6 +38,7 @@
 			{
 				"id" : "CtxInsertXRefFromObjectsInv",
 				"caption": "Insert Links To Intersphinx Projects",
+				"command" : "show_ext_links_if_intersphinx_checks_ok",
 				"mnemonic" : "x",
 				"children":
 				[

@@ -1,71 +1,30 @@
+from .utils.lnk_devLoadRefreshUtils import devStartupShim; devStartupShim()
+from .utils.lnk_loggingUtils import getLogger; logger = getLogger(debug=True)
+
 import os
-import sys
-import ast
 import re
-import zlib
+from urllib.parse import urlsplit
 import sublime
 import sublime_plugin
-from collections import defaultdict
-from .utils import refmate_utils
-from .utils.constants import pluginEnv, pluginSettingsGovernor
-try:
-    from saltydog.saltydog import pluginCentraliser, MessageOutputUtilsClassAddin
-except:
-    from .utils.saltydog import pluginCentraliser, MessageOutputUtilsClassAddin
-
-global pluginCentral
-
-if int(sublime.version()) >= 3114:
-
-    # Clear module cache to force reloading all modules of this package.
-    prefix = __package__ + "."  # don't clear the base package
-    for module_name in [
-        module_name
-        for module_name in sys.modules
-        if module_name.startswith(prefix) and module_name != __name__
-    ]:
-        del sys.modules[module_name]
-    prefix = None
-
-    # Import public API classes
-    # from .core.command import MyTextCommand
-    # from .core.events import MyEventListener
-
-    def plugin_loaded():
-        """
-        Initialize plugin:
-        This module level function is called on ST startup when the API is ready. 
-        """
-        # print(f'{pluginEnv["pluginName"]} (re)loaded')
-        # initialiseSettings(pluginSettingsGovernor, pluginEnv)
-        global pluginCentral
-        pluginCentral = pluginCentraliser(pluginSettingsGovernor, pluginEnv)
-        print(f'{pluginCentral.pluginName} settings initialised')
-
-    def plugin_unloaded():
-        """
-        This module level function is called just before the plugin is unloaded.
-        Complete tasks.
-        Cleanup package caches.
-        Exit threads.
-        """
-        # deactivateSettings()
-        # print(f'{pluginEnv["pluginName"]} unloaded')
-        # pass
-
-else:
-    raise ImportWarning(f"The {pluginEnv['pluginName']} plugin doesn't work with Sublime Text versions prior to 3114")
 
 
-class CiteFromBiblioFilesCommand(sublime_plugin.TextCommand):
-    # """
-    # Parses a list of files to regex search for sphinx project bibliographies
-    # This can only be one file so only a single bibliography is supported
-    # The name of the file must be set in sphinx-swift settings as "bibliography_rst_file"
-    # An external utility then constructs a dictionary of cit / ref pairs from the parsed bibliography
-    # Presents to user (in sublime's quick panel) a list of references
-    # If the user selects one the citation is put in at the cursor position
-    # """
+from .utils import lnk_ioUtils
+from .utils.lnk_parsingUtils import get_combo_plugin_settings, get_project_plugin_settings, getPyFileVars, getSettingsVars
+from .utils.loc_constants import settingsControl
+from .utils.loc_intersphinxHelpers import getThinIntersphinxMap, validRefTypesList, getObjInvDisplayLists
+
+pluginName = __package__.split('.')[0]
+settings = settingsControl
+
+class CiteFromBiblioFilesCommand(lnk_ioUtils.MessageOutputUtils, sublime_plugin.TextCommand):
+    """
+    Parses a list of files to regex search for sphinx project bibliographies
+    This can only be one file so only a single bibliography is supported
+    The name of the file must be set in sphinx-swift settings as "bibliography_rst_file"
+    An external utility then constructs a dictionary of cit / ref pairs from the parsed bibliography
+    Presents to user (in sublime's quick panel) a list of references
+    If the user selects one the citation is put in at the cursor position
+    """
     def on_done(self, index):
         """Callback function for sublime's quick-menu presentation of citations
         """
@@ -76,83 +35,101 @@ class CiteFromBiblioFilesCommand(sublime_plugin.TextCommand):
             self.view.run_command('insert', {"characters": self.insert_list[index]})
 
     def get_refs_from_file(self, filename):
-        # opens file with std rst refs and parses it into a dict of 2 part dicts (cit / ref)
-        # pattern for matching in target filename is ".. [author_yr] Author, 1966 Great Book"
+        """
+        Opens the filename and parses it (regex) to find restructured text citation lines of the kind:
+           ".. [author_yr] Author, 1966 Great Book"
+        or in regex capture group terms:
+           ".. [<cite_label>] <cite_text>"
+        Care is taken to avoid footnotes, which have an almost identical syntax to citations.
+        The <cite_label> must not begin with a '#' or a numerical digit, or it will be deemed a footnote reference.
+        Found citation lines are parsed into a dictionary: { cite_label: cite_line } and returned
+        """
         pattern = re.compile(r"""
             ^\.\.\s+\[
-            (?P<cit>.*?)\]\s+
-            (?P<ref>.*)$
+            (?P<cite_label>[^#\d].*?)\]\s+
+            (?P<cite_text>.*)$
             """, re.VERBOSE | re.MULTILINE)
         with open(filename, 'r') as reffile:
             # Read file object to string
             text = reffile.read()
-        # for match in pattern.finditer(text):
-        #     return match.group(1)
         found = re.findall(pattern, text)
         if found:
             return dict(found)
         return None
 
+    def is_enabled(self, **kwargs):
+        return bool(settings.getOne('bib_ref_file_list'))
+
     def run(self, edit):
-        global pluginCentral
-        if not pluginCentral.allowCommandsToRun():
-            return
-
-        self.insert_list = []
-        self.display_list = []
-
-        # Perform some initial environment checks
-        # `- Are we in a sphinx project and a restructured text scope?
-        subl_top_folder_path = self.view.window().extract_variables()["folder"]
-        docScope = self.view.scope_name(self.view.sel()[0].begin())
-
-        refmate_settings = pluginCentral.settingsAsDict()
-        if not refmate_utils.sphinx_and_rst_checks(subl_top_folder_path, docScope, refmate_settings):
-            return
-
-        cite_file_list = refmate_settings.get('bib_ref_file_list', [])
-        if not cite_file_list:
-            pluginCentral.error_message("Unable to run as no bibliography files were provided in the settings.\n\n"
-                "The plugin is not currently configured for citation insertions.")
-            return
-
-        # Process our list of cite_files to build a dictionary of available citations
+        # Process a list of user provided cite_files to build a dictionary of available citations
         # `- collect data on the number of missing/empty files as we go
-        empty_filecount = 0
-        missing_filecount = 0
+        cite_file_list = settings.getOne('bib_ref_file_list')
+        if not cite_file_list:
+            # this shouldn't happen as command is disabled if no cite file data is available
+            return
+        subl_top_folder_path = self.view.window().extract_variables()["folder"]
+        citeFileCount = len(cite_file_list)
+        datalessFileList = []
+        unreadableFileList = []
+        dataYieldingFileCount = 0
         single_parse_result = {}
         collect_parse_result = {}
         for f in cite_file_list:
             fq_ref_file = os.path.normpath(os.path.join(subl_top_folder_path, f))
-            if not os.path.isfile(fq_ref_file):
-                missing_filecount += 1
+            if not os.access(fq_ref_file, os.R_OK):
+                unreadableFileList += [f]
             else:
                 single_parse_result = self.get_refs_from_file(fq_ref_file)
-            if single_parse_result:
-                collect_parse_result.update(single_parse_result)
-            else:
-                empty_filecount += 1
+                if single_parse_result:
+                    collect_parse_result.update(single_parse_result)
+                    dataYieldingFileCount += 1
+                else:
+                    datalessFileList += [f]
+
+        if unreadableFileList:
+            for duffOne in unreadableFileList:
+                logger.info(f"User set bibliographic file \"{duffOne}\" is unreadable")
+        if datalessFileList:
+            for duffOne in datalessFileList:
+                logger.info(f"User set bibliographic file \"{duffOne}\" yielded no citation data")
 
         # Process our dictionary of collected citations
         # `- build display/insert lists
+        self.insert_list = []
+        self.display_list = []
         if collect_parse_result:
-            parsing_status_msg = "{} references found".format(len(collect_parse_result))
-            if missing_filecount > 0 or empty_filecount > 0:
-                parsing_status_msg += ": Warning: {} missing/{} empty files".format(missing_filecount, empty_filecount)
+
+            # Step 1 of 2: Some info/message generating
+            citationCount = len(collect_parse_result)
+            if dataYieldingFileCount < citeFileCount:
+                # one or more files yielded no data
+                msgShim = f"of {citeFileCount} "
+            else:
+                msgShim = ""
+            placeholderInfo = (f"{citationCount} citations from {dataYieldingFileCount} "
+                               f"{msgShim}source{'s'[:citeFileCount^1]}")
+            logger.debug(f"{citationCount} citations found "
+                         f"from {dataYieldingFileCount} {msgShim}"
+                         f"user set filename{'s'[:citeFileCount^1]}")
+
+            # Step 2 of 2: Process the cit/ref data and display the quick panel
             for cit, ref in collect_parse_result.items():
-                self.insert_list.append("[{}]_".format(cit))
-                self.display_list.append("[{}] = {}".format(cit, ref))
-            pluginCentral.status_message(parsing_status_msg)
+                # insert the reSt citation reference in correct syntax
+                self.insert_list.append(f"[{cit}]_")
+                self.display_list.append(f"[{cit}] = {ref}")
             sublime.active_window().show_quick_panel(
                 self.display_list, 
-                self.on_done
+                self.on_done,
+                placeholder = placeholderInfo
             )
         else:
-            pluginCentral.error_message(f"No references found in the searched files: {cite_file_list}\n\n"
-                "Check that your settings point to where your bibliography entries are located.")
+            self.error_message("No restructuredtext citations found in the searched files: "
+                              f"{cite_file_list}\n\nThese files are user set.\n\n"
+                               f"Please amend your {pluginName} settings so that \"bib_ref_file_list\" provides"
+                               "one or more filenames for where your bibliographic data is located.")
 
 
-class InsertRstEpilogSubstitutionCommand(sublime_plugin.TextCommand):
+class InsertRstEpilogSubstitutionCommand(lnk_ioUtils.MessageOutputUtils, sublime_plugin.TextCommand):
     """
     Present user with a list of sphinx reST |substitutions| which are valid in the current sphinx project. Insert the chosen one at current cursor pos
     1. compile list of substitutions - some standard ones, plus we must parse conf.py and extract those in the rst_epilog variable
@@ -167,29 +144,6 @@ class InsertRstEpilogSubstitutionCommand(sublime_plugin.TextCommand):
         else:
             self.view.run_command('insert', {"characters": self.insert_list[index]})
 
-    def get_rstEpilogs_from_config_file(self, config_file):
-        found_rstEp = ""
-        ast_assigns = refmate_utils.parse_pyfile_for_ast_types(config_file, [ast.Assign, ast.AugAssign])
-        if ast_assigns:
-            # print('file:  {} gave {} aug/assigns'.format(config_file, len(ast_assigns)))
-            for x in ast_assigns:
-                # print('type of assign = {}'.format(type(x)))
-                addMe = False
-                if type(x) is ast.AugAssign:
-                    if x.target.id == 'rst_epilog':
-                        addMe = True
-                elif type(x) is ast.Assign:
-                    if x.targets[0].id == 'rst_epilog':
-                        addMe = True
-                if addMe:
-                    try:
-                        found_rstEp += eval(compile(ast.Expression(x.value), "<ast expression", "eval"))
-                        raise TypeError("Only integers are allowed")
-                    except Exception as xcept:
-                        pluginCentral.xcept_message(f"Exception evaluating ast expression [{x.value}]", xcept)
-        # print('gathered: {}'.format(found_rstEp))
-        return found_rstEp
-
     def get_rst_epilog_2part_replacement_dict(self, rst_epilog_str):
         find_replacement_patterns = re.compile(r"""
             ^\.\.\s+
@@ -199,293 +153,144 @@ class InsertRstEpilogSubstitutionCommand(sublime_plugin.TextCommand):
             """, re.VERBOSE | re.MULTILINE)
         return dict(re.findall(find_replacement_patterns, rst_epilog_str))
 
-    def run(self, edit):
-        global pluginCentral
-        if not pluginCentral.allowCommandsToRun():
-            return
-        # Perform some initial environment checks
-        # `- Are we in a sphinx project and a restructured text scope?
+    def get_rst_epilog_and_prolog(self):
         subl_top_folder_path = self.view.window().extract_variables()["folder"]
-        docScope = self.view.scope_name(self.view.sel()[0].begin())
-        refmate_settings = pluginCentral.settingsAsDict()
-        # projectPluginSettings = self.view.window().project_data().get('settings')
-        projectSetts = {}
-        projectPluginSettings = sublime.active_window().project_data().get('settings')
-        if projectPluginSettings:
-            projectSetts = projectPluginSettings.get(pluginName+'PS')
-        sublime.message_dialog(f'sfile: {refmate_settings}\npSetts: {projectSetts}')
-        return
-        if refmate_settings is None: return
-        # refmate_settings = sublime.load_settings(pluginSettingsFile)
-        # proj_plugin_settings = sublime.active_window().active_view().settings().get(pluginName, {})
-        # # any SphinxRefmate settings in the .sublime-project file will override same name Default/User settings
-        # refmate_settings.update(proj_plugin_settings)
-        if not refmate_utils.sphinx_and_rst_checks(subl_top_folder_path, docScope, refmate_settings):
-            return
-
-        # Pre-populate our display/insert lists with some standard Sphinx replacements
-        self.insert_list = ["|release|",
-                            "|version|"]
-        self.display_list = ["|release| STD conf.py: full version str e.g. 2.5.2b3",
-                            "|version| STD conf.py: major + minor versions e.g. 2.5"]
-
-        sphinx_rst_epilog_files = refmate_settings.get('rst_epilog_source_list', [])
-        if not sphinx_rst_epilog_files:
-            pluginCentral.error_message("Search file list for rst_epilog / rst_prolog entries is empty.\n\n"
-                "This plugin is not currently configured for automatic reST substitution insertions. "
-                "Please update the settings if you wish to implement this feature.")
+        confPyPath = os.path.join(subl_top_folder_path, 'conf.py')
+        if not os.access(confPyPath, os.R_OK):
+            return (None, None)
         else:
-            empty_filecount = 0
-            missing_filecount = 0
-            for f in sphinx_rst_epilog_files:
-                fq_ref_file = os.path.normpath(os.path.join(subl_top_folder_path, f))
-                if not os.path.isfile(fq_ref_file):
-                    missing_filecount += 1
-                    # sublime.error_message("No sphinx config file at project root.\n Missing: {}".format(f))
-                else:  # parse the file to collect 'rst_epilog' style |substitutions|
-                    oneRstEpilog = self.get_rstEpilogs_from_config_file(fq_ref_file)
-                    if not oneRstEpilog:
-                        empty_filecount += 1
-                        # self.status_message("No rst_epilog in {}".format(f))
-                    else:
-                        convertedRstEpilog = self.get_rst_epilog_2part_replacement_dict(oneRstEpilog)
-                        if convertedRstEpilog:
-                            for shorty, longy in convertedRstEpilog.items():
-                                self.insert_list.append("|{}|".format(shorty))
-                                self.display_list.append("|{}| = {}".format(shorty, longy))
-            parsing_status_msg = "{} replacements loaded from {} rst_epilog locations"\
-                                        .format(len(self.display_list) - 2, len(sphinx_rst_epilog_files))
-            if missing_filecount > 0 or empty_filecount > 0:
-                parsing_status_msg += ": Warning: {} missing/{} empty files".format(missing_filecount, empty_filecount)
+            confPyVarsToGet = ["rst_epilog", "rst_prolog"]
+            return getPyFileVars(confPyPath, confPyVarsToGet)
 
-            pluginCentral.status_message(parsing_status_msg)
-            # There will always be something to display as this routine inserts several of sphinx's own standard replacements
+    def is_enabled(self):
+        epilogPrologTuple = self.get_rst_epilog_and_prolog()
+        shouldEnable = not all(var is None for var in epilogPrologTuple)
+        if shouldEnable:
+            logger.debug(f'Enabling menu for {__class__} as rstEpilog and/or rstProlog contain data.')
+        else:
+            logger.debug(f'Disabling menu for {__class__} as rstEpilog and rstProlog contain no data.')
+        return shouldEnable 
+
+    def run(self, edit):
+        self.insert_list = []
+        self.display_list = []
+
+        epilogPrologTuple = self.get_rst_epilog_and_prolog()
+        for substStr in epilogPrologTuple:
+            if substStr is not None:
+                convertedRstEpilog = self.get_rst_epilog_2part_replacement_dict(substStr)
+                if convertedRstEpilog:
+                    for shorty, longy in convertedRstEpilog.items():
+                        self.insert_list.append("|{}|".format(shorty))
+                        self.display_list.append("|{}| = {}".format(shorty, longy))
+
+        parsing_status_msg = f"{len(self.display_list)} rst_[epi|pro]log replacements loaded from sphinx conf.py"
+        self.status_message(parsing_status_msg)
+        logger.debug(parsing_status_msg)
+
+        # There will always be something to display as this routine inserts several of sphinx's own standard replacements
+        if self.display_list:
+            # Add to compiled display/insert lists with some standard Sphinx replacements
+            # self.insert_list += ["|release|",
+            #                     "|version|"]
+            # self.display_list += ["|release| STD conf.py: full version str e.g. 2.5.2b3",
+            #                     "|version| STD conf.py: major + minor versions e.g. 2.5"]
+
             sublime.active_window().show_quick_panel(
                 self.display_list, 
                 self.on_done
             )
 
-class ContextuallyVisibleParentMenuItemCommand(sublime_plugin.TextCommand):
+
+class VisibleIfHaveConfPyAndRstContextCommand(lnk_ioUtils.MessageOutputUtils, sublime_plugin.TextCommand):
     """
-    A wrapper to be used for parent menus (command-less) to make them visible only in certain scopes/contexts.
-    The class overrides the 'is_visible' method so it returns True only when the current scope matches the target scope
+    A dummy 'visibility-only' command for the top-level context menu,
+    to make the menu visible only if the following 2 situations are true:
+    a) a {project folder}/conf.py exists and is readable i.e. this could be a sphinx project
+    b) the presently active cursor is located in a 'text.restructuredtext' scope
+    The class exploits the 'is_visible' method to return True/False as required.
+    This command is used in the following 1x top level context menu:
+    >Sphinx Refmate>>
+    i.e. >Sphinx Refmate>> will not be 'context' available if the above 2 conditions are not met.
+    However, the context menu will always be visible if the 'rstEnvCheck' is set to False in settings
     """
     def run(self, edit, **kwargs):
         pass
 
     def is_visible(self, **kwargs):
-        # refmate_settings = sublime.load_settings(pluginSettingsFile)
-        # proj_plugin_settings = sublime.active_window().active_view().settings().get(pluginName, {})
-        # # any SphinxRefmate settings in the .sublime-project file will override same name Default/User settings
-        # refmate_settings.update(proj_plugin_settings)
-        refmate_settings = pluginCentral.settingsAsDict()
-        if refmate_settings.get('rst_check'):
-            contextOK = self.view.match_selector(self.view.sel()[0].begin(), "text.restructuredtext")
+        if not settings.getOne('rstEnvCheck'):
+            logger.debug("Showing top level context menu "
+                         "without checking for conf.py and reSt context "
+                         "(as \"rstEnvCheck\" is disabled in settings.)")
+            return True
         else:
-            contextOK = True
-        return refmate_settings.get('enable_context_menu', False) and contextOK
+            # Must check for a) extant 'conf.py', b) cursor in reSt context
+            subl_top_folder_path = self.view.window().extract_variables()["folder"]
+            # Check A: Does conf.py exist in a readable state?
+            if not os.access(os.path.join(subl_top_folder_path, 'conf.py'), os.R_OK):
+                logger.debug("Hiding top level context menu "
+                             "as conf.py absent from project root folder")
+                return False
+            elif not self.view.match_selector(self.view.sel()[0].begin(), "text.restructuredtext"):
+                logger.debug("Hiding top level context menu "
+                             "as cursor not within \"text.restructuredtext\" scope")
+                return False
+            else:
+                logger.debug("Showing top level context menu "
+                             "as conf.py exists and cursor is within reSt context.")
+                return True
 
 
-class HonedIntersphinxMap():
+class VisibleIfIntersphinxChecksOkCommand(lnk_ioUtils.MessageOutputUtils, sublime_plugin.TextCommand):
     """
-    Build a honed version of a standard intersphinx_mapping dictionary, for local referencing purposes
-    Honing involves the following work on the one or more objects.inv paths in each intersphinx_mapping entry:
-    a) Getting rid of entries that are not local files (e.g. 'None', 'http...')
-    b) Normalising (making absolute) filepaths relative to the sublime project directory
-    c) Omitting any filepaths that do not point to an extant file
-    d) Determining which intersphinx_mapping name/entry corresponds to our local project
-       `- by EITHER:
-        a) Reading the SphinxRefmate['cur_proj_intersphinx_map_name'] in the .sublime-project settings section
-           `- and checking this matches an actual intersphinx_mapping name/key 
-        b) matching one of the objects.inv paths to within our current project tree
+    A dummy 'visibility-only' command for parent menus (which would be otherwise command-less),
+    to make the menu visible only if a {project folder}/conf.py file yields the following
+    two variables a) 'intersphinx_mapping' and b) 'html_baseurl'.
+    The class exploits the 'is_visible' method to return True/False as required.
+    This command is used in the following 2x second level context menus:
+    >Sphinx Refmate>>Insert Links To Current Project>>
+    >Sphinx Refmate>>Insert Links To Intersphinx Projects>>
+    i.e. neither of these two menus will be 'context' available
+    if the above 2 specified variables are not present in conf.py
     """
-    def normalise_map_dict(self, md, norm_path):
-        retDict = {}
-        self.mapProcReport = ''
-        normFailInfo = defaultdict(list)
-        try:
-            for shortname, invdata in md.items():
-                fq_file_list = []
-                for i, invpath in enumerate(invdata[1]):
-                    if invpath is not None and not invpath.startswith('http'):
-                        try:
-                            np = os.path.normpath(os.path.join(norm_path, invpath))
-                        except Exception as err:
-                            normFailInfo[shortname].append('[{}] Error: Cannot normalise path to {} [{}].'.format(invpath, norm_path, err))
-                            continue
-                        if os.access(np, os.R_OK):
-                            fq_file_list.append(np)
-                            if not self.curProjKey:
-                                if np.startswith(norm_path):
-                                    self.curProjKey = shortname
-                        else:
-                            normFailInfo[shortname].append('[{}] Error: File not readable.'.format(invpath))
-                    else:
-                        normFailInfo[shortname].append('[{}] Skipping: Non-file item.'.format(invpath))
-                if fq_file_list:
-                    # we found at least one objects.inv, clear any errors encountered in obtaining others
-                    normFailInfo.pop(shortname, True)
-                    # save our object.inv path(s) in the correct format for returning
-                    retDict[shortname] = (invdata[0], tuple(fq_file_list))
-        except Exception as err:
-            print('Error processing {} entry in intersphinx map: [{}]\nErr = {}'.format(shortname, invdata, err))
-            retDict = {}
-        if normFailInfo:
-            detailStr = ''
-            for key, value in normFailInfo.items():
-                for i, failInfo in enumerate(value):
-                    detailStr += '\n{}: {}'.format(key, failInfo)
-            self.mapProcReport = 'No valid objects.inv files could be located for the following '\
-                'Sphinx projects: {}\n'.format(", ".join([key for key, value in normFailInfo.items()]))
-            self.mapProcReport += 'Details: {}'.format(detailStr)
-        if retDict:
-            # we have at least one valid objects.inv locations
-            if not self.curProjKey:
-                # but we've been unable to identify which objects.inv belongs to the curren edit project
-                pluginCentral.msgBox("{} Warning: Cannot identify current Sphinx project in the intersphinx_mapping.\n\n"
-                    "We will continue but if you use SphinxRefmate to insert a reference under these circumstances, "
-                    "then that reference will be transformed into a fully qualified hyperlink, at build time, rather than "
-                    "a relative link.\n\nOne way to overcome this problem is to set the [cur_proj_intersphinx_map_name] setting in the "
-                    "[SphinxRefmate] section of the current project's .sublime-project file, so that it matches the correct "
-                    "intersphinx_mapping key.".format(pluginName))
-            if self.mapProcReport:
-                # but we couldn't locate an objects.inv one or more projects
-                pluginCentral.msgBox("{} Warning: Unable to build reference lists for all identified projects:\n\n"
-                    "{}".format(pluginName, self.mapProcReport))
-        return retDict
 
-    def __init__(self, stdMap={}, subl_proj_root_path="", plugin_settings={}):
-        self.givenMap = stdMap
-        self.subl_top_folder_path = subl_proj_root_path
-        self.OK = True
-        self.whatsWrong = ''
-        self.mapProcReport = ''
-        # the current project intersphinx map key/name may have been provided in the .sublime-settings of a project
-        # in which case we don't have to work out our current project key by path comparisons (which is not guaranteed to work)
-        self.curProjKey = plugin_settings.get('cur_proj_intersphinx_map_name', '')
-        if self.curProjKey:
-            if self.curProjKey not in self.givenMap:
-                pluginCentral.msgBox('cant find {} key'.format(self.curProjKey))
-                self.curProjKey = ''
+    # this string should be set in child classes
+    targetMenuStr = "--placeholder--"
 
-        # Init Step 1: Perform our objects.inv path normalisations
-        self.honedMap = self.normalise_map_dict(self.givenMap, self.subl_top_folder_path)
-        if not self.honedMap:
-            self.whatsWrong = 'Problems found in normalising the objects.inv location paths to the current '\
-                'project (top level) folder: {}\n\nYou may need to amend '\
-                'your intersphinx_mapping settings.'.format(self.subl_top_folder_path)
-            if self.mapProcReport:
-                self.whatsWrong += '\nFailed intersphinx_mapping summary:\n{}'.format(self.mapProcReport)
-            self.OK = False
+    def is_enabled(self, **kwargs):
+        # Construct the expected sphinx-doc project %root-folder%/conf.py file path
+        subl_top_folder_path = self.view.window().extract_variables()["folder"]
+        confPyPath = os.path.join(subl_top_folder_path, 'conf.py')
+        if not os.access(confPyPath, os.R_OK):
+            logger.debug(f"{self.targetMenuStr} menu disabled: as conf.py absent from project root folder")
+            return False
 
-    def getObjectInv(self, projectIDKey=None):
-        """
-        Return the first available objects.inv filepath for a project
-        This will have been pre-checked as extant by the normalise_map_dict function
-        """
-        if self.OK:
-            try:
-                self.searchLine = self.honedMap.get(projectIDKey, None)
-            except Exception as err:
-                print('Error retrieving [{}] entry from map: {}\n\nErr: {}'.format(projectIDKey, self.honedMap, err))
-                self.searchLine = None
-            return self.searchLine[1][0]
-
-    def getCurProjObjectInv(self):
-        if self.OK:
-            return self.getObjectInv(self.curProjKey)
-
-    def getKeyList(self):
-        if self.OK:
-            return [projectShortname for projectShortname, infoTuple in self.honedMap.items()]
-
-    def OK(self):
-        return self.OK
-
-    def errorStr(self):
-        return self.whatsWrong
+        logger.debug(f"Determining {self.targetMenuStr} visibility by checking for key variables in {confPyPath}")
+        # try to read two required variables from conf.py
+        confPyVarsToGet = ["intersphinx_mapping",
+            "html_baseurl"]
+        intersphinxMap, projBaseurl = getPyFileVars(confPyPath, confPyVarsToGet)
+        # check the two required variables
+        if intersphinxMap is None:
+            logger.debug(f'{self.targetMenuStr} menu disabled: No \"intersphinx_mapping\" variable in Sphinx project conf.py')
+            return False
+        elif projBaseurl is None:
+            logger.debug(f'{self.targetMenuStr} menu disabled: No \"html_baseurl\" variable in Sphinx project conf.py')
+            return False
+        else:
+            logger.debug(f'{self.targetMenuStr} menu enabled: Found both \"intersphinx_mapping\" and \"html_baseurl\" in Sphinx project conf.py')
+            return True
 
 
-class IntersphinxMapFinder():
-
-    @staticmethod
-    def get_intersphinx_map_from_config_file(config_file):
-        found_map = {}
-        ast_assigns = refmate_utils.parse_pyfile_for_ast_types(config_file, [ast.Assign])
-        if ast_assigns:
-            # print('no. of assigns = {}'.format(len(ast_assigns)))
-            for x in ast_assigns:
-                # print('name = {}'.format(x.targets[0].id))
-                if x.targets[0].id == 'intersphinx_mapping':
-                    try:
-                        found_map = eval(compile(ast.Expression(x.value), "<ast expression", "eval"))
-                    except Exception as err:
-                        print('Cannot evaluate ast expression [{}]. Gave error: {}'.format(x.value, err))
-                        return None
-                    else:
-                        return found_map
-
-    def __init__(self, sublProjFolder=None, plugin_settings={}):
-        self.mapSourceFile = ""
-        self.whatsWrong = ""
-        self.OK = True
-        self.subl_top_folder_path = sublProjFolder
-        self.confFilesSearched = []
-
-        # Init Step 1: Get 'map_file_list' from plugin (+project) settings
-        #              map_file_list will contain filenames to search for 'intersphinx_mapping' variable
-        self.map_file_list = plugin_settings.get('intersphinx_map_source_list', [])
-        # We should now have some file names in 'map_file_list' to search
-        if not self.map_file_list:
-            self.whatsWrong = "Cannot search for project links as no search targets for 'intersphinx_mapping' were defined in the settings.\n"\
-                "Please amend the plugin settings if you want to auto-insert local project references."
-            self.OK = False
-
-        # Init Step 2: Get first available 'intersphinx_mapping' var and load it into self.map_dict
-        #              Files in self.map_file_list are searched in order until 'intersphinx_mapping' is found
-        if self.OK:
-            self.map_dict = {}
-            for file_to_search in self.map_file_list:
-                # the 'file_to_search', as got from settings, is likely to be relative to project/folder root:
-                # `- normalise it (absolute paths should not be affected)
-                try:
-                    fq_map_file = os.path.normpath(os.path.join(self.subl_top_folder_path, file_to_search))
-                except Exception as err:
-                    print('Cannot normalise path {} to folder {}.\nErr: {}'.format(file_to_search, self.subl_top_folder_path, err))
-                    self.confFilesSearched.append('{} [Invalid Path]'.format(file_to_search))
-                    continue
-                if not os.access(fq_map_file, os.R_OK):
-                    self.confFilesSearched.append('{} [File Unreadable]'.format(file_to_search))
-                    continue
-                self.map_dict = IntersphinxMapFinder.get_intersphinx_map_from_config_file(fq_map_file)
-                # print('{} gave map: {}'.format(file_to_search, map_dict))
-                if self.map_dict:
-                    self.mapSourceFile = fq_map_file
-                    # print('found map in file: {}'.format(file_to_search))
-                    break
-                else:
-                    self.confFilesSearched.append('{} [Contains No Map]'.format(file_to_search))
-            if not self.map_dict:
-                self.whatsWrong = 'Cannot locate a valid intersphinx_mapping variable in any of the '\
-                    'config files searched.\n\nFiles searched:\n{}'.format("\n".join(self.confFilesSearched))
-                self.OK = False
-
-    def OK(self):
-        return self.OK
-
-    def errorStr(self):
-        return self.whatsWrong
-
-    def sourceFile(self):
-        if self.OK:
-            return self.mapSourceFile
-
-    def intersphinx_mapping(self):
-        if self.OK:
-            return self.map_dict
+class ShowIntLinksIfIntersphinxChecksOkCommand(VisibleIfIntersphinxChecksOkCommand):
+    targetMenuStr = "<<Insert Links To Current Project>>"
 
 
-class InsertSphinxLinksCommand(sublime_plugin.TextCommand):
+class ShowExtLinksIfIntersphinxChecksOkCommand(VisibleIfIntersphinxChecksOkCommand):
+    targetMenuStr = "<<Insert Links To Intersphinx Projects>>"
+
+
+class InsertSphinxLinksCommand(lnk_ioUtils.MessageOutputUtils, sublime_plugin.TextCommand):
     """
     Builds a list of sphinx labels, docs, OR glossary terms - or all 3, for one or more Sphinx projects, 
     `- from objects.inv files via intersphinx_mapping settings.
@@ -506,202 +311,105 @@ class InsertSphinxLinksCommand(sublime_plugin.TextCommand):
         else:
             self.view.run_command('insert', {"characters": self.datalist[index]})
 
-    # @staticmethod
-    def fetch_inv_lists(self, invloc, refTypeTarget="", intersphinx_key="", is_cur_proj=False):
-        """
-        Parse a sphinx objects.inv file on the local filesystem at invloc
-        return 2 x lists with data/display entries for the identified section of objects.inv
-        return empty lists if there are errors processing the objects.inv file
-        """
-        kosherLine1 = '# Sphinx inventory version 2'
-        datalist = []
-        displaylist = []
-        bufsize = 16 * 1024
-        display_prefix = intersphinx_key + ":"
-        data_prefix = intersphinx_key + ":"
-        if is_cur_proj:
-            display_prefix = "*" + display_prefix
-            data_prefix = ""
-
-        def read_chunks():
-            decompressor = zlib.decompressobj()
-            for chunk in iter(lambda: f.read(bufsize), b''):
-                yield decompressor.decompress(chunk)
-            yield decompressor.flush()
-
-        def split_lines(iter):
-            buf = b''
-            for chunk in iter:
-                buf += chunk
-                lineend = buf.find(b'\n')
-                while lineend != -1:
-                    yield buf[:lineend].decode('utf-8')
-                    buf = buf[lineend + 1:]
-                    lineend = buf.find(b'\n')
-            assert not buf
-
-        try:
-            f = open(invloc, 'rb')
-            try:
-                # Sphinx v2 inventories begin with the following 4 uncompressed lines:
-                # Sphinx inventory version 2
-                # Project: <project name>
-                # Version: <full version number>
-                # The remainder of this file is compressed using zlib.
-                line = f.readline().rstrip().decode('utf-8')
-                if line == kosherLine1:
-                    # set up some variables and constants
-                    dataMappings = defaultdict(list)
-                    displayMappings = defaultdict(list)
-                    validRefTypes = ['doc', 'label', 'term']
-                    # The first line of the open file 'f' has already been read by the calling function
-                    # read line 2 and extract 'projname'
-                    line = f.readline()
-                    # projname = line.rstrip()[11:].decode('utf-8')
-                    # read line 3 and extract 'projname'
-                    line = f.readline()
-                    # version = line.rstrip()[11:].decode('utf-8')
-                    # read line 4 and check for 'zlib' encoding notice
-                    line = f.readline().decode('utf-8')
-                    if 'zlib' not in line:
-                        refmate_utils.error_message("Badly formatted objects.inv file at {}\n\nNo zlib line(4)".format(invloc))
-                    else:
-                        # main
-                        for line in split_lines(read_chunks()):
-                            # be careful to handle names with embedded spaces correctly
-                            m = re.match(r'(?x)(.+?)\s+(\S*:\S*)\s+(\S+)\s+(\S+)\s+(.*)',
-                                         line.rstrip())
-                            if not m:
-                                continue
-                            name, entrytype, prio, location, dispname = m.groups()
-                                
-                            # adjust any shorthand entries
-                            # - any $ terminating the location is shorthand for 'name'
-                            if location.endswith(u'$'):
-                                location = location[:-1] + name
-                            # - any -(dash) terminating the dispname is also shorthand for 'name'
-                            if dispname == "-":
-                                dispname = name
-
-                            if entrytype.startswith("std:"):
-                                # we are only concerned with the standard namespace entries (std)
-                                lineRefType = entrytype[4:]  # strip 'std:'
-                                if lineRefType in validRefTypes:
-                                    if lineRefType == "label":
-                                        insertStr = ":ref:`{}{}`".format(data_prefix, name)
-                                        displayStr = "{}>section: {} (ref:{})".format(display_prefix, dispname, name)
-                                    elif lineRefType == "doc":
-                                        insertStr = ":doc:`{}{}`".format(data_prefix, name)
-                                        displayStr = "{}>page: {} (doc:{})".format(display_prefix, dispname, name)
-                                    elif lineRefType == "term":
-                                        insertStr = ":term:`{}{}`".format(data_prefix, name)
-                                        displayStr = "{}>glossary_term: {} (term:{})".format(display_prefix, dispname, name)
-                                    dataMappings[lineRefType].append(insertStr)
-                                    displayMappings[lineRefType].append(displayStr)
-
-                        if refTypeTarget in validRefTypes:
-                            # build lists for a single refType
-                            datalist = dataMappings[refTypeTarget]
-                            displaylist = displayMappings[refTypeTarget]
-                        else:
-                            # (default) build lists for all refTypes
-                            for x in validRefTypes:
-                                datalist.extend(dataMappings[x])
-                                displaylist.extend(displayMappings[x])
-
-                    # datalist, displaylist = InsertSphinxLinksCommand.read_inventory_v2(f, refTypeTarget=refTypeTarget, \
-                        # display_prefix=display_prefix)
-                else:
-                    pluginCentral.error_message('Unknown first line identifier in objects.inv file: {}\n\n'
-                                           'Identifier found: [{}]\n\n'
-                                           'Identifier expected: [{}]'.format(invloc, line, kosherLine1))
-            except Exception as err:
-                pluginCentral.xcept_message(f"Unable to parse intersphinx inventory [{invloc}]", err)
-        except Exception as err:
-            pluginCentral.xcept_message(f"Unable to open intersphinx inventory [{invloc}]", err)
-        finally:
-            f.close()
-            return datalist, displaylist
-
     def run(self, edit, withinProj=False, refTypeToGet='all'):
-        global pluginCentral
-        if not pluginCentral.allowCommandsToRun():
-            return
-
         # The refTypeToGet and withinProj vars must be set in the sublime command calls to this routine
-        if refTypeToGet not in ['label', 'doc', 'term', 'all']:
-            pluginCentral.error_message("Oops. Programming error. Incorrect [{}] setting for refTypeToGet parameter".format(refTypeToGet))
+        if refTypeToGet == 'all':
+            refTypeTargetList = validRefTypesList
+        elif refTypeToGet in validRefTypesList:
+            refTypeTargetList = [refTypeToGet]
+        else:
+            logger.error(f"Plugin config error. Incorrect [{refTypeToGet}] setting for refTypeToGet parameter")
             return
 
         self.datalist = []
         self.displaylist = []
 
-        # Perform some initial environment checks
-        # `- Are we in a sphinx project and a restructured text scope?
-        subl_top_folder_path = self.view.window().extract_variables()["folder"]
-        docScope = self.view.scope_name(self.view.sel()[0].begin())
-        # refmate_settings = sublime.load_settings(pluginSettingsFile)
-        # proj_plugin_settings = sublime.active_window().active_view().settings().get(pluginName, {})
-        # # any SphinxRefmate settings in the .sublime-project file will override same name Default/User settings
-        # refmate_settings.update(proj_plugin_settings)
-        refmate_settings = pluginCentral.settingsAsDict()
-        if not refmate_utils.sphinx_and_rst_checks(subl_top_folder_path, docScope, refmate_settings):
+        # Find some essential/useful variables from the associated sphinx project %root-folder%/conf.py file
+        self.subl_top_folder_path = self.view.window().extract_variables()["folder"]
+        confPyPath = os.path.join(self.subl_top_folder_path, 'conf.py')
+        confPyVarsToGet = ["intersphinx_mapping",
+            "html_baseurl",
+            "intersphinx_resolve_self"]
+        self.givenMap, projBaseurl, projResolveSelf = getPyFileVars(confPyPath, confPyVarsToGet)
+        projSelfKey = settings.get(['intersphinx_self_key'])['intersphinx_self_key']
+
+        # print(f"found intersphinx_mapping = {self.givenMap}")
+        # print(f"found html_baseurl = {projBaseurl}")
+        # print(f"found projResolveSelf = {projResolveSelf}")
+        # print(f"found projSelfKey = {projSelfKey}")
+        # return
+
+        if self.givenMap is None:
+            self.error_message('No intersphinx_mapping variable in current sphinx project conf.py')
             return
 
-        mapFinder = IntersphinxMapFinder(subl_top_folder_path, refmate_settings)
-        if not mapFinder.OK:
-            pluginCentral.error_message('Error searching for intersphinx mapping: {}'.format(mapFinder.errorStr()))
-            mapFinder = None
-            return
+        # identify key to local proj in intersphinx_mapping
+        if projSelfKey is None:
+            if projResolveSelf is not None:
+                projSelfKey = projResolveSelf
+            elif projBaseurl is not None:
+                projNetloc = urlsplit(projBaseurl).netloc
+                for isKey, isData in self.givenMap.items():
+                    if urlsplit(isData[0]).netloc == projNetloc:
+                        projSelfKey = isKey
+                        break
+        # print(f'calculated proj self key = {projSelfKey}')
+        # return
 
-        honedSphinxMap = HonedIntersphinxMap(mapFinder.intersphinx_mapping(), subl_top_folder_path, refmate_settings)
-        if not honedSphinxMap.OK:
-            pluginCentral.error_message('Cannot process intersphinx_mapping at: {}\n\n {}'.format(mapFinder.sourceFile(), honedSphinxMap.errorStr()))
-            honedSphinxMap = None
-            return
+        # If a sphinx project is local/private, i.e. not publicly accessible on the internet
+        # then we don't want links to this site to appear in public sphinx projects.
+        # To distinguish between local/private projects and public projects, SphinxRefmate 
+        # allows the use of a 'priv-project-prefix' (definable via plugin settings).
+        # SphinxRefmate will recognise private projects by this prefix, and will not
+        # put links to private projects to be inserted in public projects.
+        priv_prefix = settings.get(['priv_project_prefix'])['priv_project_prefix']
+        logger.debug(f"Settings yielded private/local project prefix = \"{priv_prefix}\" (for intersphinx map keys)")
 
-        # Are we referencing a single project, or all 'intersphinx' projects
-        # if withinProj.lower() in ['true', 'yes']:
+        self.targetKeyList = []  # an empty self.targetKeyList list will get link data from all intersphinx map keys
         if withinProj:
-            # limit projects to search for refs to current project
-            projKeyList = [honedSphinxMap.curProjKey]
-        else:
-            projKeyList = honedSphinxMap.getKeyList()
+            # limit link data to current project intersphinx map key
+            self.targetKeyList = [projSelfKey]
+        elif priv_prefix and not projSelfKey.startswith(priv_prefix):
+            # present project is public, so links to private projects must not be used
+            # `- so we omit intersphinx map private projects (with private prefix) from our compilations
+            logger.debug("Not compiling links to private projects, "
+                         "as it would be invalid to insert these "
+                         f"into the present public hosted project \"{projSelfKey}\"")
+            for isKey in self.givenMap.keys():
+                if not isKey.startswith(priv_prefix):
+                    self.targetKeyList += [isKey]
+        logger.debug(f"Compiling data for following intersphinx map keys: {self.targetKeyList} (all keys if list is empty)")
 
-        # Local lan sphinx projects are prefixed with the value of 'priv_project_prefix' in their intersphinx_map name
-        # If referencing a non-local project we DO NOT want to put in references that point to a local project
-        priv_prefix = refmate_settings.get('priv_project_prefix', '')
-        if priv_prefix:
-            if len(projKeyList) > 1 and not honedSphinxMap.curProjKey.startswith(priv_prefix):
-                # sublime.message_dialog('missing out locs from {}'.format(projKeyList))
-                for i in projKeyList:
-                    if i.startswith(priv_prefix):
-                        projKeyList.remove(i)
-                # sublime.message_dialog('with private ones gone {}'.format(projKeyList))
-            
-        for thisKey in projKeyList:
-            OI = honedSphinxMap.getObjectInv(thisKey)
-            if OI:
-                pluginCentral.status_message("Parsing {} entries (for intersphinx key/name: {})".format(OI, thisKey))
-                curProj = False
-                if thisKey == honedSphinxMap.curProjKey:
+        simpleMap = getThinIntersphinxMap(self.givenMap, self.subl_top_folder_path, self.targetKeyList)
+        # for thisKey, objInvPaths in self.normalise_map_dict().items():
+        for thisKey, objInvPaths in simpleMap.items():
+            for extantPath in objInvPaths:
+                logger.debug(f"Parsing {extantPath} (for sphinx project \"{thisKey}\" handle links)")
+                if thisKey == projSelfKey:
                     curProj = True
-                    # add asterix to easily identify local project in the display
-                    # prefixToDisplay = '*' + prefixToDisplay
-                # build data/display lists for each required project
-                datal, displ = self.fetch_inv_lists(OI, refTypeTarget=refTypeToGet, intersphinx_key=thisKey, is_cur_proj=curProj)
+                    logger.debug(f'- Intersphinx:{thisKey} is the project currently being edited')
+                else:
+                    curProj = False
+                datal, displ = getObjInvDisplayLists(extantPath,
+                                                    refTypeTargetList=refTypeTargetList,
+                                                    intersphinx_key=thisKey,
+                                                    is_cur_proj=curProj)
                 self.datalist += datal
                 self.displaylist += displ
+                logger.debug(f'- Intersphinx:{thisKey} yielded {len(datal)} references of type: {refTypeTargetList}')
 
         if not self.datalist:
-            pluginCentral.error_message('No [{}] entries found in {}'.format(refTypeToGet, OI))
+            self.status_message("No valid intersphinx data found")
+            logger.error(f'No {refTypeTargetList} entries found in any objects.inv '
+                         'for all searched intersphinx map keys.')
             return
-        elif len(self.datalist) == len(self.displaylist):
-            pluginCentral.status_message("Found {} {} entries to display.".format(len(self.datalist), refTypeToGet))
+        elif len(self.datalist) == len(self.displaylist):  # check display and data lists are same length
+            self.status_message(f"Displaying {len(self.datalist)} objects.inv entries")
+            logger.debug(f"Displaying {len(self.datalist)} objects.inv entries")
             sublime.active_window().show_quick_panel(
                 self.displaylist, 
                 self.on_done
             )
         else:
-            pluginCentral.error_message('Data mismatch in retrieving [{}] entries from {}'.format(refTypeToGet, OI))
+            self.error_message('Data mismatch in retrieving [{}] entries from {}'.format(refTypeToGet, ObjInvPath))
             return
