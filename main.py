@@ -411,5 +411,5 @@ class InsertSphinxLinksCommand(lnk_ioUtils.MessageOutputUtils, sublime_plugin.Te
                 self.on_done
             )
         else:
-            self.error_message('Data mismatch in retrieving [{}] entries from {}'.format(refTypeToGet, ObjInvPath))
+            self.error_message('Data mismatch in retrieving [{}] entries from {}'.format(refTypeToGet, extantPath))
             return
