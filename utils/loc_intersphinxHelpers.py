@@ -167,10 +167,10 @@ def getObjInvDisplayLists(objInvPathStr,
                                        'Identifier found: [{}]\n\n'
                                        'Identifier expected: [{}]'.format(objInvPathStr, line, kosherLine1))
         except Exception as err:
-            errDetails = lnk_ioUtils.exceptionDetails(err)
+            errDetails = exceptionDetails(err)
             logger.error(f"Unable to parse intersphinx {objInvPathStr} inventory. {errDetails}")
     except Exception as err:
-        errDetails = lnk_ioUtils.exceptionDetails(err)
+        errDetails = exceptionDetails(err)
         logger.error(f"Unable to open intersphinx inventory [{objInvPathStr}]. {errDetails}")
     finally:
         f.close()
